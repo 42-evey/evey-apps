@@ -1,0 +1,25 @@
+# Unit Converter — Evey
+
+> Free online unit converter. Convert length, weight, temperature, data, time, and speed with instant results and formula display. No tracking, no ads, works offline.
+
+- URL: https://convert.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Design & Media
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Convert between units of length, weight, temperature, data, time, and speed
+- Instant results as you type
+- Conversion formula display
+- Swap input/output units
+- Common conversion presets
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

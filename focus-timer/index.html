@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Free Pomodoro Timer — Focus Sessions, Streaks | Evey</title>
+<meta name="description" content="Pomodoro focus timer with customizable intervals, session tracking, and notification sounds.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Free Pomodoro Timer — Focus Sessions, Streaks | Evey">
+<meta property="og:description" content="Pomodoro focus timer with customizable intervals, session tracking, and notification sounds.">
+<meta property="og:url" content="https://focus.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Pomodoro Timer — Focus Sessions, Streaks | Evey","url":"https://focus.evey.cc/","description":"Pomodoro focus timer with customizable intervals, session tracking, and notification sounds.","applicationCategory":"ProductivityApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://focus.evey.cc/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--danger:#ff4455;--warn:#ffaa00;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+
+/* BG */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+/* Nav */
+
+/* Timer */
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:90px 24px 100px;text-align:center}
+.timer-ring{width:260px;height:260px;margin:0 auto 32px;position:relative}
+.timer-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.timer-ring circle{fill:none;stroke-width:4}
+.ring-bg{stroke:var(--border)}
+.ring-progress{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.ring-progress.break{stroke:#6366f1}
+.timer-display{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.timer-time{font-size:3.5rem;font-weight:800;font-family:var(--mono);color:#fff;letter-spacing:-0.02em}
+.timer-label{font-size:0.78rem;color:var(--text-sec);font-weight:500;text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+
+/* Controls */
+.controls{display:flex;gap:10px;justify-content:center;margin-bottom:32px}
+.ctrl-btn{padding:12px 28px;border-radius:10px;font-size:0.9rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all var(--dur) var(--ease);border:none}
+.ctrl-primary{background:var(--accent);color:var(--bg)}
+.ctrl-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.ctrl-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border)}
+.ctrl-ghost:hover{color:var(--text);border-color:var(--border-hover)}
+
+/* Mode selector */
+.modes{display:flex;gap:4px;justify-content:center;margin-bottom:24px;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border)}
+.mode-btn{padding:8px 18px;border-radius:8px;font-size:0.78rem;font-weight:600;color:var(--text-sec);cursor:pointer;transition:all var(--dur);border:none;background:transparent;font-family:var(--font)}
+.mode-btn.active{color:#fff;background:rgba(255,255,255,0.1)}
+.mode-btn:hover:not(.active){color:var(--text)}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;border-radius:12px;overflow:hidden;margin-bottom:24px;border:1px solid var(--border)}
+.stat{background:var(--surface);padding:16px 8px;text-align:center}
+.stat-value{font-size:1.2rem;font-weight:800;color:var(--accent);font-family:var(--mono)}
+.stat-label{font-size:0.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+
+/* Session log */
+.log{text-align:left;margin-top:24px}
+.log-title{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:10px}
+.log-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;font-size:0.82rem}
+.log-type{font-weight:600;color:#fff}
+.log-time{font-family:var(--mono);font-size:0.72rem;color:var(--text-dim)}
+.log-empty{color:var(--text-dim);font-size:0.82rem;text-align:center;padding:20px}
+
+/* Settings */
+.settings{text-align:left;margin-top:32px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.settings-title{font-size:0.78rem;font-weight:600;color:#fff;margin-bottom:12px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.setting-row:last-child{border:none}
+.setting-label{font-size:0.82rem;color:var(--text-sec)}
+.setting-input{width:60px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:0.82rem;text-align:center;outline:none}
+.setting-input:focus{border-color:var(--accent)}
+
+/* Footer */
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:480px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:640px){
+
+  .app{padding:24px 20px 100px}
+  .timer-ring{width:220px;height:220px}
+  .timer-time{font-size:2.8rem}
+  body{padding-bottom:64px}
+  .footer{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div class="app">
+  <div class="modes">
+    <button class="mode-btn active" onclick="setMode('focus')">Focus</button>
+    <button class="mode-btn" onclick="setMode('short')">Short Break</button>
+    <button class="mode-btn" onclick="setMode('long')">Long Break</button>
+  </div>
+
+  <div class="timer-ring">
+    <svg viewBox="0 0 260 260">
+      <circle class="ring-bg" cx="130" cy="130" r="120"/>
+      <circle class="ring-progress" id="ring" cx="130" cy="130" r="120" stroke-dasharray="753.98" stroke-dashoffset="0"/>
+    </svg>
+    <div class="timer-display">
+      <div class="timer-time" id="time">25:00</div>
+      <div class="timer-label" id="label">Focus</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn ctrl-primary" id="start-btn" onclick="toggleTimer()">Start</button>
+    <button class="ctrl-btn ctrl-ghost" onclick="resetTimer()">Reset</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="s-sessions">0</div><div class="stat-label">Sessions</div></div>
+    <div class="stat"><div class="stat-value" id="s-minutes">0</div><div class="stat-label">Focus Min</div></div>
+    <div class="stat"><div class="stat-value" id="s-streak">0</div><div class="stat-label">Streak</div></div>
+  </div>
+
+  <div class="log">
+    <div class="log-title">Today's Sessions</div>
+    <div id="log-list"><div class="log-empty">No sessions yet. Start focusing.</div></div>
+  </div>
+
+  <div class="settings">
+    <div class="settings-title">Settings</div>
+    <div class="setting-row">
+      <span class="setting-label">Focus (min)</span>
+      <input class="setting-input" id="set-focus" type="number" value="25" min="1" max="90" onchange="updateSettings()">
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">Short Break (min)</span>
+      <input class="setting-input" id="set-short" type="number" value="5" min="1" max="30" onchange="updateSettings()">
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">Long Break (min)</span>
+      <input class="setting-input" id="set-long" type="number" value="15" min="1" max="60" onchange="updateSettings()">
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">Long break after</span>
+      <input class="setting-input" id="set-interval" type="number" value="4" min="2" max="10" onchange="updateSettings()">
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">Sound</span>
+      <select class="setting-input" id="set-sound" style="width:80px" onchange="updateSettings()">
+        <option value="bell">Bell</option>
+        <option value="chime">Chime</option>
+        <option value="none">None</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://evey.cc">Home</a>
+    <a href="https://evey.cc/shop">Donate</a>
+    <a href="https://habits.evey.cc">Habits</a>
+    <a href="https://listings.evey.cc">Listings</a>
+    <a href="https://github.com/42-evey">GitHub</a>
+  </div>
+  <div class="footer-copy">evey.cc — All data stays in your browser</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CIRC = 2 * Math.PI * 120; // 753.98
+let config = JSON.parse(localStorage.getItem('pomodoro-config') || 'null') || { focus: 25, short: 5, long: 15, interval: 4, sound: 'bell' };
+let mode = 'focus';
+let timeLeft = config.focus * 60;
+let totalTime = config.focus * 60;
+let running = false;
+let timer = null;
+let sessions = JSON.parse(localStorage.getItem('pomodoro-sessions') || '[]');
+let focusCount = 0;
+
+// Load settings into UI
+document.getElementById('set-focus').value = config.focus;
+document.getElementById('set-short').value = config.short;
+document.getElementById('set-long').value = config.long;
+document.getElementById('set-interval').value = config.interval;
+document.getElementById('set-sound').value = config.sound;
+
+function save() { localStorage.setItem('pomodoro-config', JSON.stringify(config)); }
+function saveSessions() { localStorage.setItem('pomodoro-sessions', JSON.stringify(sessions)); }
+
+function updateSettings() {
+  config.focus = parseInt(document.getElementById('set-focus').value) || 25;
+  config.short = parseInt(document.getElementById('set-short').value) || 5;
+  config.long = parseInt(document.getElementById('set-long').value) || 15;
+  config.interval = parseInt(document.getElementById('set-interval').value) || 4;
+  config.sound = document.getElementById('set-sound').value;
+  save();
+  if (!running) { setMode(mode); }
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && m === 'focus') || (i === 1 && m === 'short') || (i === 2 && m === 'long'));
+  });
+  const ring = document.getElementById('ring');
+  ring.classList.toggle('break', m !== 'focus');
+  timeLeft = (m === 'focus' ? config.focus : m === 'short' ? config.short : config.long) * 60;
+  totalTime = timeLeft;
+  if (running) { clearInterval(timer); running = false; }
+  document.getElementById('start-btn').textContent = 'Start';
+  updateDisplay();
+}
+
+function updateDisplay() {
+  const min = Math.floor(timeLeft / 60);
+  const sec = timeLeft % 60;
+  document.getElementById('time').textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  document.getElementById('label').textContent = mode === 'focus' ? 'Focus' : mode === 'short' ? 'Short Break' : 'Long Break';
+  const offset = CIRC * (1 - timeLeft / totalTime);
+  document.getElementById('ring').style.strokeDashoffset = offset;
+  document.title = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')} — Focus Timer`;
+}
+
+function toggleTimer() {
+  if (running) {
+    clearInterval(timer);
+    running = false;
+    document.getElementById('start-btn').textContent = 'Resume';
+  } else {
+    running = true;
+    document.getElementById('start-btn').textContent = 'Pause';
+    timer = setInterval(tick, 1000);
+  }
+}
+
+function tick() {
+  timeLeft--;
+  if (timeLeft < 0) {
+    clearInterval(timer);
+    running = false;
+    playSound();
+    onComplete();
+    return;
+  }
+  updateDisplay();
+}
+
+function resetTimer() {
+  clearInterval(timer);
+  running = false;
+  document.getElementById('start-btn').textContent = 'Start';
+  timeLeft = totalTime;
+  updateDisplay();
+}
+
+function onComplete() {
+  const now = new Date();
+  const entry = { mode, duration: totalTime / 60, time: now.toISOString(), date: now.toLocaleDateString() };
+
+  // Filter to today only
+  const today = new Date().toLocaleDateString();
+  sessions = sessions.filter(s => s.date === today);
+  sessions.push(entry);
+  saveSessions();
+
+  if (mode === 'focus') {
+    focusCount++;
+    toast(`Focus session complete! (${config.focus} min)`);
+    // Auto-switch to break
+    if (focusCount % config.interval === 0) {
+      setMode('long');
+    } else {
+      setMode('short');
+    }
+  } else {
+    toast('Break over — time to focus!');
+    setMode('focus');
+  }
+
+  updateStats();
+  renderLog();
+
+  // Notification
+  if (Notification.permission === 'granted') {
+    new Notification('Focus Timer', { body: mode === 'focus' ? 'Break time!' : 'Back to focus!', icon: 'icon-192.png' });
+  }
+}
+
+function playSound() {
+  if (config.sound === 'none') return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = config.sound === 'bell' ? 800 : 600;
+    osc.type = config.sound === 'bell' ? 'sine' : 'triangle';
+    gain.gain.value = 0.3;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+    osc.stop(ctx.currentTime + 1);
+  } catch (e) {}
+}
+
+function updateStats() {
+  const today = new Date().toLocaleDateString();
+  const todaySessions = sessions.filter(s => s.date === today && s.mode === 'focus');
+  document.getElementById('s-sessions').textContent = todaySessions.length;
+  document.getElementById('s-minutes').textContent = todaySessions.reduce((a, s) => a + s.duration, 0);
+  document.getElementById('s-streak').textContent = focusCount;
+}
+
+function renderLog() {
+  const today = new Date().toLocaleDateString();
+  const todaySessions = sessions.filter(s => s.date === today).reverse();
+  const list = document.getElementById('log-list');
+  if (todaySessions.length === 0) {
+    list.innerHTML = '<div class="log-empty">No sessions yet. Start focusing.</div>';
+    return;
+  }
+  list.innerHTML = todaySessions.map(s => {
+    const t = new Date(s.time);
+    const label = s.mode === 'focus' ? 'Focus' : s.mode === 'short' ? 'Short Break' : 'Long Break';
+    return `<div class="log-item"><span class="log-type" style="color:${s.mode === 'focus' ? 'var(--accent)' : '#6366f1'}">${label} (${s.duration}m)</span><span class="log-time">${t.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span></div>`;
+  }).join('');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// Service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+}
+
+// Init
+updateDisplay();
+updateStats();
+renderLog();
+</script>
+</body>
+</html>

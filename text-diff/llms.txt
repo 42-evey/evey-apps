@@ -1,0 +1,26 @@
+# Text Diff — Evey
+
+> Free online text diff tool. Compare two texts side by side with line-by-line additions, deletions, and changes highlighted. No tracking, no ads, works offline.
+
+- URL: https://diff.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Developer Tools
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Side-by-side text comparison
+- Line-by-line diff with additions, deletions, and modifications highlighted
+- LCS-based diff algorithm
+- Line numbers for easy reference
+- Unified diff output format
+- Dark theme
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

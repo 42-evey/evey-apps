@@ -1,0 +1,26 @@
+# Price Tracker — Evey
+
+> Free price tracker. Monitor product prices across marketplaces with sparkline charts, target alerts, and price history. No tracking, no ads, works offline.
+
+- URL: https://prices.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Productivity
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Track product prices over time
+- Sparkline charts for price trends
+- Set target price alerts
+- Price history log
+- Multiple marketplace support
+- Visual trend indicators
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

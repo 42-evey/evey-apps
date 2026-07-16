@@ -1,0 +1,27 @@
+# Listings Manager — Evey
+
+> Free marketplace listing manager with AI background removal. Create and manage listings with photos, descriptions, pricing, and cross-platform exports. No tracking, no ads, works offline.
+
+- URL: https://listings.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Productivity
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Create and manage marketplace listings
+- AI-powered background removal for product photos
+- Photo management with multiple images per listing
+- Pricing and status tracking
+- Cross-platform export formats
+- Search and filter listings
+- Local data storage
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

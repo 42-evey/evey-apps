@@ -1,0 +1,26 @@
+# Color Palette — Evey
+
+> Free online color palette generator. Generate beautiful color palettes for dark themes with harmony, random, pastel, and monochrome modes. Copy hex/RGB, export CSS variables. No tracking, no ads, works offline.
+
+- URL: https://colors.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Design & Media
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Generate color palettes with multiple modes (harmony, random, pastel, monochrome)
+- Optimized for dark theme design
+- Color picker with HEX, RGB, HSL values
+- Export as CSS variables
+- Copy individual colors to clipboard
+- Palette history and favorites
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

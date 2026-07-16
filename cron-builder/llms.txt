@@ -1,0 +1,27 @@
+# Cron Builder — Evey
+
+> Free online cron expression builder. Build cron expressions visually with human-readable preview, next scheduled runs, and presets. No tracking, no ads, works offline.
+
+- URL: https://cron.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Developer Tools
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Visual cron expression builder with dropdowns and toggles
+- Human-readable description of the cron schedule
+- Preview next scheduled run times in real-time
+- Standard 5-field cron syntax support
+- Common presets (every minute, hourly, daily, weekly, monthly)
+- Syntax cheat sheet and examples
+- Copy expression to clipboard
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

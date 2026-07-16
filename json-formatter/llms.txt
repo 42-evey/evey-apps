@@ -1,0 +1,29 @@
+# JSON Formatter — Evey
+
+> Free online JSON formatter, validator, and minifier. Format, validate, minify, and search JSON with syntax highlighting, tree view, path copy, and sort keys. No tracking, no ads, works offline.
+
+- URL: https://json.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Developer Tools
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Format and pretty-print JSON with customizable indentation
+- Validate JSON with clear error messages and line numbers
+- Minify JSON to reduce size
+- Syntax highlighting with dark theme
+- Tree view for navigating nested structures
+- Search within JSON content
+- Sort keys alphabetically
+- Copy JSON path for any node
+- Import from file or paste from clipboard
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

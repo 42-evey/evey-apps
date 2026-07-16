@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Free Unit Converter — Length, Weight, Temperature, Data | Evey</title>
+<meta name="description" content="Convert units: length, weight, temperature, data, time, speed. Instant, private, offline.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Free Unit Converter — Length, Weight, Temperature, Data | Evey">
+<meta property="og:description" content="Convert units: length, weight, temperature, data, time, speed. Instant, private, offline.">
+<meta property="og:url" content="https://convert.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Unit Converter — Length, Weight, Temperature, Data | Evey","url":"https://convert.evey.cc/","description":"Convert units: length, weight, temperature, data, time, speed. Instant, private, offline.","applicationCategory":"DesignApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://convert.evey.cc/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+.app{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:80px 24px 48px;text-align:center}
+.app h1{font-size:clamp(1.8rem,5vw,2.2rem);font-weight:800;letter-spacing:-0.03em;color:#fff;margin-bottom:20px}
+.app h1 em{font-style:normal;color:var(--accent)}
+.cats{display:flex;gap:4px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.cat{padding:6px 14px;border-radius:99px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all var(--dur);border:1px solid var(--border);background:transparent;color:var(--text-sec);font-family:var(--font)}
+.cat:hover{border-color:var(--accent);color:var(--accent)}
+.cat.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.converter{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px}
+.input-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.input-row input{flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:1.1rem;outline:none;text-align:right}
+.input-row input:focus{border-color:var(--accent)}
+.input-row select{background:var(--bg);color:var(--accent);border:1px solid var(--border);border-radius:8px;padding:12px 10px;font-family:var(--font);font-size:0.82rem;outline:none;min-width:80px;cursor:pointer}
+.input-row select:focus{border-color:var(--accent)}
+.swap-btn{background:transparent;border:1px solid var(--border);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dim);font-size:1rem;transition:all var(--dur);margin:0 auto 12px;font-family:var(--font)}
+.swap-btn:hover{border-color:var(--accent);color:var(--accent)}
+.result{font-family:var(--mono);font-size:1.4rem;font-weight:700;color:var(--accent);margin-top:8px;word-break:break-all}
+.result-label{font-size:0.72rem;color:var(--text-dim);margin-top:4px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:440px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+@media(max-width:640px){
+  
+  .app{padding:24px 20px 80px}body{padding-bottom:64px}.footer{display:none}}
+</style>
+</head>
+<body>
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div class="app">
+<h1>Unit <em>Converter</em></h1>
+<div class="cats" id="cats"></div>
+<div class="converter">
+<div class="input-row"><input id="val1" type="number" value="1" oninput="convert('from')"><select id="unit1" onchange="convert('from')"></select></div>
+<button class="swap-btn" onclick="swap()">&#8645;</button>
+<div class="input-row"><input id="val2" type="number" oninput="convert('to')"><select id="unit2" onchange="convert('from')"></select></div>
+<div class="result" id="result"></div>
+<div class="result-label" id="formula"></div>
+</div>
+</div>
+<footer class="footer"><div class="footer-links"><a href="https://evey.cc">Home</a><a href="https://evey.cc/shop">Donate</a><a href="https://json.evey.cc">JSON</a><a href="https://github.com/42-evey">GitHub</a></div><div class="footer-copy">evey.cc — All data stays in your browser</div></footer>
+<div class="toast" id="toast"></div>
+<script>
+const UNITS={
+  Length:{m:1,km:1000,cm:0.01,mm:0.001,mi:1609.344,yd:0.9144,ft:0.3048,in:0.0254},
+  Weight:{kg:1,g:0.001,mg:0.000001,lb:0.453592,oz:0.0283495,t:1000},
+  Temperature:{C:'c',F:'f',K:'k'},
+  Data:{B:1,KB:1024,MB:1048576,GB:1073741824,TB:1099511627776,bit:0.125},
+  Time:{s:1,ms:0.001,min:60,hr:3600,day:86400,week:604800,year:31536000},
+  Speed:{'m/s':1,'km/h':0.277778,'mph':0.44704,knot:0.514444}
+};
+let cat='Length';
+
+function renderCats(){
+  document.getElementById('cats').innerHTML=Object.keys(UNITS).map(c=>
+    `<button class="cat${c===cat?' active':''}" onclick="setCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+function setCat(c){
+  cat=c;renderCats();
+  const units=Object.keys(UNITS[cat]);
+  const s1=document.getElementById('unit1'),s2=document.getElementById('unit2');
+  s1.innerHTML=units.map(u=>`<option value="${u}">${u}</option>`).join('');
+  s2.innerHTML=units.map(u=>`<option value="${u}">${u}</option>`).join('');
+  if(units.length>1)s2.selectedIndex=1;
+  convert('from');
+}
+
+function convert(dir){
+  const v1=document.getElementById('val1'),v2=document.getElementById('val2');
+  const u1=document.getElementById('unit1').value,u2=document.getElementById('unit2').value;
+  const val=parseFloat(dir==='from'?v1.value:v2.value)||0;
+
+  let result;
+  if(cat==='Temperature'){
+    if(dir==='from')result=convertTemp(val,u1,u2);
+    else result=convertTemp(val,u2,u1);
+  }else{
+    const factors=UNITS[cat];
+    if(dir==='from')result=val*factors[u1]/factors[u2];
+    else result=val*factors[u2]/factors[u1];
+  }
+
+  if(dir==='from')v2.value=formatNum(result);
+  else v1.value=formatNum(result);
+
+  document.getElementById('result').textContent=`${formatNum(parseFloat(v1.value))} ${u1} = ${formatNum(parseFloat(v2.value))} ${u2}`;
+  document.getElementById('formula').textContent=`1 ${u1} = ${formatNum(cat==='Temperature'?convertTemp(1,u1,u2):UNITS[cat][u1]/UNITS[cat][u2])} ${u2}`;
+}
+
+function convertTemp(val,from,to){
+  let c;
+  if(from==='C')c=val;else if(from==='F')c=(val-32)*5/9;else c=val-273.15;
+  if(to==='C')return c;if(to==='F')return c*9/5+32;return c+273.15;
+}
+
+function formatNum(n){
+  if(Number.isInteger(n))return n.toString();
+  const s=n.toPrecision(10);
+  return parseFloat(s).toString();
+}
+
+function swap(){
+  const s1=document.getElementById('unit1'),s2=document.getElementById('unit2');
+  const tmp=s1.selectedIndex;s1.selectedIndex=s2.selectedIndex;s2.selectedIndex=tmp;
+  convert('from');
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500)}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+renderCats();setCat('Length');
+</script>
+</body>
+</html>

@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Track everything you own. Categories, rooms, photos, values, insurance reports. Free, private, offline PWA.">
+<link rel="manifest" href="manifest.json">
+<title>Free Home Inventory Manager — Photos, Insurance Reports | Evey</title>
+<meta property="og:title" content="Free Home Inventory Manager — Photos, Insurance Reports | Evey">
+<meta property="og:description" content="Track everything you own. Categories, rooms, photos, values, insurance reports. Free, private, offline PWA.">
+<meta property="og:url" content="https://inventory.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Home Inventory Manager — Photos, Insurance Reports | Evey","url":"https://inventory.evey.cc/","description":"Track everything you own. Categories, rooms, photos, values, insurance reports. Free, private, offline PWA.","applicationCategory":"ProductivityApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://inventory.evey.cc/">
+<style>
+/* ========== RESET ========== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ========== VARIABLES (from DESIGN-SYSTEM.css) ========== */
+:root{
+  /* Backgrounds */
+  --bg:#0a0a0f;
+  --surface:#13131f;
+  --surface-hover:#1a1a2e;
+  --overlay:rgba(0,0,0,0.7);
+
+  /* Accent */
+  --accent:#00ff42;
+  --accent-hover:#00cc35;
+  --accent-dim:rgba(0,255,66,0.1);
+
+  /* Text — NO grey. White for primary, light for secondary, muted for tertiary */
+  --text:#f0f0f5;
+  --text-sec:#c8c8d8;
+  --text-dim:#8888a0;
+
+  /* Borders */
+  --border:rgba(255,255,255,0.08);
+  --border-hover:rgba(255,255,255,0.15);
+
+  /* Semantic */
+  --danger:#ff4455;
+  --warn:#ffaa00;
+  --success:#00ff42;
+
+  /* Typography */
+  --font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+  --mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;
+
+  /* Spacing (8px grid) */
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px;
+
+  /* Radii */
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-full:99px;
+
+  /* Transitions */
+  --ease:cubic-bezier(0.16,1,0.3,1);
+  --dur:0.2s;
+}
+
+/* ========== BASE ========== */
+html,body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--font);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  min-height:100vh
+}
+a{color:var(--accent);text-decoration:none;transition:opacity var(--dur)}
+a:hover{opacity:0.85}
+button{font-family:var(--font);cursor:pointer;border:none;background:none;color:inherit}
+
+/* Animated BG */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+/* Floating Pill Nav (Desktop) */
+
+/* ========== BUTTONS ========== */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 20px;border-radius:var(--r-md);
+  font-size:0.85rem;font-weight:600;font-family:var(--font);
+  cursor:pointer;transition:all var(--dur) var(--ease);
+  border:none;text-decoration:none;line-height:1
+}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,255,66,0.2);opacity:1}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);opacity:1}
+.btn-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border);padding:6px 14px;font-size:0.78rem}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-hover);opacity:1}
+.btn-sm{padding:6px 12px;font-size:0.75rem}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{opacity:0.85}
+.btn-icon{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border);transition:all var(--dur)}
+.btn-icon:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ========== CARDS ========== */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;
+  transition:all var(--dur) var(--ease);
+  display:block;color:inherit;text-decoration:none
+}
+.card:hover{transform:translateY(-2px);border-color:var(--border-hover);background:var(--surface-hover);opacity:1}
+.card-title{font-size:0.92rem;font-weight:600;color:#fff;margin-bottom:4px}
+.card-desc{font-size:0.82rem;color:var(--text-sec);font-weight:400;line-height:1.5}
+.card-badge{display:inline-block;font-size:0.62rem;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);margin-bottom:8px;font-family:var(--mono)}
+
+/* ========== STATS ========== */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
+.stat{background:var(--surface);padding:18px 12px;text-align:center}
+.stat-value{font-size:1.4rem;font-weight:800;color:var(--accent);font-family:var(--mono)}
+.stat-label{font-size:0.62rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+
+/* ========== INPUTS ========== */
+input[type="text"],input[type="number"],input[type="url"],input[type="date"],input[type="search"],
+textarea,select{
+  width:100%;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:var(--r-md);
+  padding:10px 14px;font-family:var(--font);font-size:0.88rem;
+  outline:none;transition:border-color var(--dur)
+}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+::placeholder{color:var(--text-dim)}
+textarea{resize:vertical;min-height:80px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%238888a0' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* ========== MODAL ========== */
+.modal-overlay{
+  position:fixed;inset:0;background:var(--overlay);
+  display:none;align-items:center;justify-content:center;
+  z-index:500;padding:20px;backdrop-filter:blur(4px)
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  width:100%;max-width:540px;max-height:85vh;
+  display:flex;flex-direction:column
+}
+.modal h2{font-size:1.1rem;font-weight:700;color:#fff}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-header .close-btn{font-size:1.4rem;color:var(--text-dim);transition:color var(--dur);background:none;border:none;cursor:pointer;padding:4px}
+.modal-header .close-btn:hover{color:var(--text)}
+.modal-body{overflow-y:auto;padding:20px 24px;flex:1}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--border);flex-shrink:0}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ========== TOAST ========== */
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--surface);color:var(--text);
+  padding:10px 20px;border-radius:var(--r-md);
+  font-size:0.82rem;font-weight:500;
+  z-index:900;transition:transform 0.3s var(--ease);
+  border:1px solid var(--border);
+  box-shadow:0 4px 16px rgba(0,0,0,0.4)
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--accent)}
+.toast.error{border-color:var(--danger)}
+
+/* ========== SECTION ========== */
+.section{max-width:900px;margin:0 auto;padding:0 24px 48px}
+.section-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:16px}
+
+/* ========== FOOTER ========== */
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:800px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+
+/* ========== APP LAYOUT ========== */
+.app{padding-top:80px}
+
+/* App toolbar below nav */
+.toolbar{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 24px;max-width:900px;margin:0 auto;
+  flex-wrap:wrap
+}
+.toolbar-search{flex:1;min-width:180px;position:relative}
+.toolbar-search input{padding-left:36px;border-radius:var(--r-full)}
+.toolbar-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-dim)}
+.toolbar-actions{display:flex;gap:8px;align-items:center}
+
+/* Internal tabs */
+.app-tabs{
+  display:flex;gap:2px;padding:0 24px;max-width:900px;margin:0 auto;
+  border-bottom:1px solid var(--border)
+}
+.app-tab{
+  padding:10px 18px;font-size:0.82rem;font-weight:500;
+  color:var(--text-sec);border-bottom:2px solid transparent;
+  transition:all var(--dur);cursor:pointer;background:none;border-top:none;border-left:none;border-right:none
+}
+.app-tab:hover{color:var(--text)}
+.app-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-count{font-size:0.68rem;background:var(--surface);color:var(--text-dim);padding:1px 7px;border-radius:var(--r-full);margin-left:4px;font-family:var(--mono)}
+.app-tab.active .tab-count{background:var(--accent-dim);color:var(--accent)}
+
+/* Dashboard */
+.dashboard{padding:20px 24px;max-width:900px;margin:0 auto;display:grid;gap:16px}
+
+/* Chart sections */
+.chart-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px}
+.chart-section h3{font-size:0.72rem;color:var(--text-dim);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.06em}
+.chart-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.chart-bar-label{width:90px;font-size:0.8rem;color:var(--text-sec);text-align:right;flex-shrink:0}
+.chart-bar-track{flex:1;height:24px;background:var(--bg);border-radius:var(--r-sm);overflow:hidden}
+.chart-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-hover));border-radius:var(--r-sm);transition:width 0.6s var(--ease);display:flex;align-items:center;padding-left:8px;font-size:0.68rem;color:var(--bg);font-weight:700;white-space:nowrap}
+
+/* Condition chips */
+.condition-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.condition-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--r-md);background:var(--bg);font-size:0.8rem;color:var(--text-sec)}
+.condition-dot{width:8px;height:8px;border-radius:50%}
+
+/* Depreciation */
+.depreciation{font-size:0.72rem;display:inline-flex;align-items:center;gap:3px;font-weight:600}
+.depreciation.up{color:var(--success)}
+.depreciation.down{color:var(--danger)}
+.depreciation.same{color:var(--text-dim)}
+
+/* Recently added list */
+.recent-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.recent-item:last-child{border-bottom:none}
+.recent-name{font-weight:500;color:var(--text)}
+.recent-badge{display:inline-block;padding:2px 8px;border-radius:var(--r-sm);font-size:0.68rem;background:var(--accent-dim);color:var(--accent);margin-left:8px;font-family:var(--mono)}
+.recent-value{color:var(--accent);font-weight:700;font-family:var(--mono)}
+
+/* Filters bar */
+.filters-bar{padding:12px 24px;max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters-bar select{width:auto;min-width:120px}
+.range-group{display:flex;align-items:center;gap:8px}
+.range-group input[type="number"]{width:90px;padding:6px 8px;font-size:0.82rem}
+.range-group span{color:var(--text-dim);font-size:0.82rem}
+
+/* Items grid */
+.items-grid{padding:20px 24px;max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(min-width:768px){.items-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1200px){.items-grid{grid-template-columns:repeat(4,1fr)}}
+
+.item-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  overflow:hidden;cursor:pointer;transition:all var(--dur) var(--ease);position:relative
+}
+.item-card:hover{transform:translateY(-2px);border-color:var(--border-hover);background:var(--surface-hover)}
+.item-card .thumb{width:100%;aspect-ratio:1;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.item-card .thumb img{width:100%;height:100%;object-fit:cover}
+.item-card .thumb svg{color:var(--text-dim);opacity:0.2}
+.item-card .card-body{padding:12px}
+.item-card .card-name{font-size:0.85rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-card .card-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.item-card .card-value{font-size:0.92rem;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.badge{display:inline-block;padding:2px 8px;border-radius:var(--r-full);font-size:0.68rem;font-weight:600;background:var(--bg);color:var(--text-sec);font-family:var(--mono)}
+.badge-condition{font-size:0.62rem}
+.badge-condition[data-c="New"]{background:rgba(0,255,66,0.12);color:var(--accent)}
+.badge-condition[data-c="Like New"]{background:rgba(0,204,255,0.12);color:#00ccff}
+.badge-condition[data-c="Good"]{background:rgba(255,170,0,0.12);color:var(--warn)}
+.badge-condition[data-c="Fair"]{background:rgba(255,136,0,0.12);color:#ff8800}
+.badge-condition[data-c="Poor"]{background:rgba(255,68,85,0.12);color:var(--danger)}
+
+/* Photo count badge */
+.photo-count{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;font-size:0.68rem;padding:2px 7px;border-radius:var(--r-full);display:flex;align-items:center;gap:3px}
+
+/* Modal tabs */
+.modal-tabs{display:flex;gap:2px;margin-bottom:20px}
+.modal-tab{padding:8px 14px;border-radius:var(--r-md);font-size:0.82rem;font-weight:500;color:var(--text-dim);transition:all var(--dur);cursor:pointer;background:none;border:none}
+.modal-tab.active{background:var(--bg);color:var(--accent)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* Drop zone */
+.drop-zone{border:2px dashed var(--border);border-radius:var(--r-lg);padding:32px;text-align:center;cursor:pointer;transition:all var(--dur)}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-dim)}
+.drop-zone p{color:var(--text-dim);font-size:0.85rem;margin-top:8px}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.photo-grid .photo-thumb{position:relative;aspect-ratio:1;border-radius:var(--r-md);overflow:hidden}
+.photo-grid .photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-grid .photo-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none}
+
+/* Dropdown menu */
+.dropdown{position:relative}
+.dropdown-menu{position:absolute;top:100%;right:0;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);min-width:200px;padding:4px;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:none;z-index:50}
+.dropdown-menu.open{display:block}
+.dropdown-item{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border-radius:var(--r-sm);font-size:0.82rem;text-align:left;color:var(--text-sec);background:none;border:none;cursor:pointer;transition:all var(--dur)}
+.dropdown-item:hover{background:var(--surface-hover);color:var(--text)}
+.dropdown-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* Confirm dialog */
+.confirm-overlay{position:fixed;inset:0;z-index:600;background:var(--overlay);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--dur)}
+.confirm-overlay.open{opacity:1;pointer-events:auto}
+.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;max-width:360px;text-align:center}
+.confirm-box h3{margin-bottom:8px;color:var(--text)}
+.confirm-box p{color:var(--text-sec);font-size:0.85rem;margin-bottom:20px}
+.confirm-box .btn-row{display:flex;gap:8px;justify-content:center}
+
+/* Empty state */
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px}
+.empty-state svg{color:var(--text-dim);opacity:0.15;margin-bottom:16px}
+.empty-state h3{font-size:1.1rem;margin-bottom:8px;color:var(--text)}
+.empty-state p{color:var(--text-sec);font-size:0.85rem;margin-bottom:24px}
+
+/* Print */
+.print-only{display:none}
+@media print{
+  body{background:#fff;color:#000}
+  .nav,.app-tabs,.filters-bar,.toolbar,.toast,.footer,.no-print{display:none!important}
+  .print-only{display:block!important}
+  .items-grid{display:block!important}
+  .item-card{break-inside:avoid;border:1px solid #ccc;margin-bottom:12px;page-break-inside:avoid}
+  .item-card .card-value{color:#000}
+  .badge{border:1px solid #ccc}
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-hover);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-dim)}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:640px){
+
+  body{padding-bottom:64px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .items-grid{grid-template-columns:1fr}
+  .toolbar{padding:12px 16px}
+  .dashboard{padding:16px}
+  .filters-bar{padding:12px 16px}
+  .items-grid{padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .app-tabs{padding:0 16px}
+  .section{padding:0 16px 40px}
+}
+
+/* ========== REDUCED MOTION ========== */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div class="app">
+  <!-- Toolbar -->
+  <div class="toolbar no-print">
+    <div class="toolbar-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="search" id="searchInput" placeholder="Search items...">
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Add
+      </button>
+      <div class="dropdown">
+        <button class="btn-icon" onclick="toggleMenu(this)" aria-label="More options">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+        <div class="dropdown-menu" id="mainMenu">
+          <button class="dropdown-item" onclick="exportJSON()">Export JSON</button>
+          <button class="dropdown-item" onclick="exportCSV()">Export CSV</button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" onclick="triggerImport()">Import JSON</button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" onclick="exportPrintableSummary()">Printable Summary</button>
+          <button class="dropdown-item" onclick="printInsurance()">Insurance Report</button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" onclick="openSettings()">Settings</button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" style="color:var(--danger)" onclick="clearAllData()">Clear All Data</button>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+
+  <!-- Internal tabs -->
+  <div class="app-tabs no-print">
+    <button class="app-tab active" data-tab="dashboard" onclick="switchTab(this)">Dashboard</button>
+    <button class="app-tab" data-tab="items" onclick="switchTab(this)">Items <span class="tab-count" id="itemCount">0</span></button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="tab-dashboard" class="tab-content dashboard"></div>
+
+  <!-- Items -->
+  <div id="tab-items" class="tab-content" style="display:none">
+    <div class="filters-bar no-print">
+      <select id="filterCategory" onchange="applyFilters()"><option value="">All Categories</option></select>
+      <select id="filterRoom" onchange="applyFilters()"><option value="">All Rooms</option></select>
+      <select id="filterCondition" onchange="applyFilters()">
+        <option value="">All Conditions</option>
+        <option>New</option><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option>
+      </select>
+      <select id="sortBy" onchange="applyFilters()">
+        <option value="dateDesc">Newest First</option>
+        <option value="dateAsc">Oldest First</option>
+        <option value="nameAsc">Name A-Z</option>
+        <option value="nameDesc">Name Z-A</option>
+        <option value="valueDesc">Highest Value</option>
+        <option value="valueAsc">Lowest Value</option>
+        <option value="categoryAsc">Category A-Z</option>
+      </select>
+      <div class="range-group">
+        <input type="number" id="filterMinValue" placeholder="Min" min="0" onchange="applyFilters()">
+        <span>-</span>
+        <input type="number" id="filterMaxValue" placeholder="Max" min="0" onchange="applyFilters()">
+      </div>
+    </div>
+    <div class="items-grid" id="itemsGrid"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer no-print">
+    <div class="footer-links">
+      <a href="https://evey.cc">Home</a>
+      <a href="https://evey.cc/shop">Donate</a>
+      <a href="https://listings.evey.cc">Listings</a>
+      <a href="https://habits.evey.cc">Habits</a>
+      <a href="https://github.com/42-evey">GitHub</a>
+    </div>
+    <div class="footer-copy">evey.cc — All data stays in your browser</div>
+  </footer>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Item</h2>
+      <button class="close-btn" onclick="closeModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-pane="details" onclick="switchModalTab(this)">Details</button>
+        <button class="modal-tab" data-pane="photos" onclick="switchModalTab(this)">Photos</button>
+        <button class="modal-tab" data-pane="notes" onclick="switchModalTab(this)">Notes</button>
+      </div>
+      <div id="pane-details" class="tab-pane active">
+        <div class="form-group"><label>Name</label><input type="text" id="itemName" placeholder="What is this item?"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Category</label><select id="itemCategory"></select></div>
+          <div class="form-group"><label>Room / Location</label><select id="itemRoom"></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Purchase Price</label><input type="number" id="itemPrice" step="0.01" min="0" placeholder="0.00"></div>
+          <div class="form-group"><label>Estimated Value</label><input type="number" id="itemValue" step="0.01" min="0" placeholder="0.00"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Purchase Date</label><input type="date" id="itemDate"></div>
+          <div class="form-group"><label>Condition</label>
+            <select id="itemCondition">
+              <option>New</option><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="pane-photos" class="tab-pane">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('photoInput').click()">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <p>Drop images here or click to upload</p>
+        </div>
+        <input type="file" id="photoInput" multiple accept="image/*" style="display:none" onchange="handlePhotos(event)">
+        <div class="photo-grid" id="photoGrid"></div>
+      </div>
+      <div id="pane-notes" class="tab-pane">
+        <div class="form-group"><label>Notes</label><textarea id="itemNotes" rows="6" placeholder="Serial numbers, warranty info, anything useful..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-secondary btn-sm" id="dupeBtn" style="display:none" onclick="duplicateItem()">Duplicate</button>
+      <button class="btn btn-danger btn-sm" id="deleteBtn" style="display:none" onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-primary btn-sm" id="saveBtn" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Settings</h2>
+      <button class="close-btn" onclick="closeSettings()" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Currency Symbol</label>
+        <input type="text" id="setCurrency" maxlength="4" style="width:80px">
+      </div>
+      <div class="form-group">
+        <label>Categories (one per line)</label>
+        <textarea id="setCategories" rows="6"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Rooms / Locations (one per line)</label>
+        <textarea id="setRooms" rows="6"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast (single, centered bottom) -->
+<div class="toast" id="toastEl"></div>
+
+<!-- Confirm dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">Delete Item?</h3>
+    <p id="confirmMsg">This cannot be undone.</p>
+    <div class="btn-row">
+      <button class="btn btn-secondary btn-sm" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="confirmAction">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Insurance print view injected dynamically -->
+<div class="print-only" id="printReport"></div>
+
+<script>
+// ── State ──
+const DB_NAME = 'InventoryDB';
+const DB_VERSION = 1;
+const STORE_ITEMS = 'items';
+const STORE_PHOTOS = 'photos';
+const LS_SETTINGS = 'inv_settings';
+let db = null;
+let allItems = [];
+let editingId = null;
+let pendingPhotos = [];
+let settings = loadSettings();
+let toastTimer = null;
+
+function defaultSettings() {
+  return {
+    currency: '$',
+    categories: ['Electronics','Furniture','Clothing','Kitchen','Tools','Sports','Books','Other'],
+    rooms: ['Living Room','Bedroom','Kitchen','Bathroom','Office','Garage','Storage']
+  };
+}
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_SETTINGS));
+    if (s && s.categories) return s;
+  } catch {}
+  return defaultSettings();
+}
+
+function saveSettingsToLS() { localStorage.setItem(LS_SETTINGS, JSON.stringify(settings)); }
+
+// ── IndexedDB ──
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE_ITEMS)) {
+        const s = d.createObjectStore(STORE_ITEMS, { keyPath: 'id' });
+        s.createIndex('category', 'category', { unique: false });
+        s.createIndex('room', 'room', { unique: false });
+      }
+      if (!d.objectStoreNames.contains(STORE_PHOTOS))
+        d.createObjectStore(STORE_PHOTOS, { keyPath: 'id' });
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbPut(store, data) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(data);
+    tx.oncomplete = () => resolve();
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+// ── Init ──
+async function init() {
+  await openDB();
+  allItems = await dbGetAll(STORE_ITEMS);
+  populateFilterDropdowns();
+  updateItemCount();
+  renderDashboard();
+  renderItems();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
+}
+
+// ── Format helpers ──
+function fmt(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return settings.currency + '0';
+  return settings.currency + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+// ── Toast ──
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toastEl');
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  // Force reflow then show
+  void el.offsetWidth;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Dropdowns ──
+function populateFilterDropdowns() {
+  populateSelect('filterCategory', ['', ...settings.categories], ['All Categories', ...settings.categories]);
+  populateSelect('filterRoom', ['', ...settings.rooms], ['All Rooms', ...settings.rooms]);
+  populateSelect('itemCategory', settings.categories);
+  populateSelect('itemRoom', settings.rooms);
+}
+
+function populateSelect(id, values, labels) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  values.forEach((v, i) => {
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = labels ? labels[i] : v;
+    el.appendChild(o);
+  });
+}
+
+// ── Dashboard ──
+function renderDashboard() {
+  const cont = document.getElementById('tab-dashboard');
+  const total = allItems.length;
+  const totalValue = allItems.reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+  const totalPaid = allItems.reduce((s, i) => s + (parseFloat(i.price) || 0), 0);
+  const depPct = totalPaid > 0 ? Math.round(((totalValue - totalPaid) / totalPaid) * 100) : 0;
+  const depClass = depPct > 0 ? 'up' : depPct < 0 ? 'down' : 'same';
+
+  // Category breakdown
+  const catMap = {};
+  allItems.forEach(i => { catMap[i.category] = (catMap[i.category] || 0) + (parseFloat(i.value) || 0); });
+  const catEntries = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+  const maxCatVal = catEntries.length ? catEntries[0][1] : 1;
+
+  // Room breakdown
+  const roomMap = {};
+  allItems.forEach(i => { roomMap[i.room] = (roomMap[i.room] || 0) + 1; });
+  const roomEntries = Object.entries(roomMap).sort((a, b) => b[1] - a[1]);
+  const maxRoomCount = roomEntries.length ? roomEntries[0][1] : 1;
+
+  // Recent items
+  const recent = [...allItems].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 5);
+
+  cont.innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Total Items</div></div>
+      <div class="stat"><div class="stat-value">${fmt(totalValue)}</div><div class="stat-label">Total Value</div></div>
+      <div class="stat"><div class="stat-value">${fmt(totalPaid)}</div><div class="stat-label">Total Paid</div></div>
+      <div class="stat"><div class="stat-value"><span class="depreciation ${depClass}">${depPct > 0 ? '+' : ''}${depPct}%</span></div><div class="stat-label">Value Change</div></div>
+    </div>
+    ${catEntries.length ? `<div class="chart-section"><h3>Value by Category</h3>${catEntries.map(([c, v]) => `
+      <div class="chart-bar-row">
+        <div class="chart-bar-label">${c}</div>
+        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.max(2, (v / maxCatVal) * 100)}%">${fmt(v)}</div></div>
+      </div>`).join('')}</div>` : ''}
+    ${roomEntries.length ? `<div class="chart-section"><h3>Items by Room</h3>${roomEntries.map(([r, n]) => `
+      <div class="chart-bar-row">
+        <div class="chart-bar-label">${r}</div>
+        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.max(2, (n / maxRoomCount) * 100)}%">${n} item${n !== 1 ? 's' : ''}</div></div>
+      </div>`).join('')}</div>` : ''}
+    ${total ? `<div class="chart-section"><h3>Condition Breakdown</h3><div class="condition-row">
+      ${['New','Like New','Good','Fair','Poor'].map(c => {
+        const count = allItems.filter(i => i.condition === c).length;
+        if (!count) return '';
+        const colors = {New:'#00ff42','Like New':'#00ccff',Good:'#ffaa00',Fair:'#ff8800',Poor:'#ff4455'};
+        return `<div class="condition-chip"><span class="condition-dot" style="background:${colors[c]}"></span>${c}: ${count}</div>`;
+      }).join('')}
+    </div></div>` : ''}
+    ${recent.length ? `<div class="chart-section"><h3>Recently Added</h3>
+      ${recent.map(item => `<div class="recent-item">
+        <div>
+          <span class="recent-name">${esc(item.name)}</span>
+          <span class="recent-badge">${esc(item.category)}</span>
+        </div>
+        <span class="recent-value">${fmt(item.value)}</span>
+      </div>`).join('')}
+    </div>` : ''}
+    ${!total ? `<div class="chart-section" style="text-align:center;padding:40px 20px">
+      <p style="color:var(--text-sec)">Add your first item to see stats here.</p>
+    </div>` : ''}
+  `;
+}
+
+// ── Items Grid ──
+function getFilteredItems() {
+  let items = [...allItems];
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const cat = document.getElementById('filterCategory').value;
+  const room = document.getElementById('filterRoom').value;
+  const cond = document.getElementById('filterCondition').value;
+  if (q) items = items.filter(i => i.name.toLowerCase().includes(q) || (i.notes || '').toLowerCase().includes(q));
+  if (cat) items = items.filter(i => i.category === cat);
+  if (room) items = items.filter(i => i.room === room);
+  if (cond) items = items.filter(i => i.condition === cond);
+  const minVal = parseFloat(document.getElementById('filterMinValue').value);
+  const maxVal = parseFloat(document.getElementById('filterMaxValue').value);
+  if (!isNaN(minVal)) items = items.filter(i => (parseFloat(i.value) || 0) >= minVal);
+  if (!isNaN(maxVal)) items = items.filter(i => (parseFloat(i.value) || 0) <= maxVal);
+
+  const sort = document.getElementById('sortBy').value;
+  const dir = sort.endsWith('Asc') ? 1 : -1;
+  if (sort.startsWith('name')) items.sort((a, b) => dir * a.name.localeCompare(b.name));
+  else if (sort.startsWith('value')) items.sort((a, b) => dir * ((parseFloat(a.value) || 0) - (parseFloat(b.value) || 0)));
+  else if (sort.startsWith('category')) items.sort((a, b) => dir * a.category.localeCompare(b.category));
+  else items.sort((a, b) => dir * ((a.createdAt || 0) - (b.createdAt || 0)));
+  return items;
+}
+
+async function renderItems() {
+  const grid = document.getElementById('itemsGrid');
+  const items = getFilteredItems();
+  if (!items.length) {
+    const isFiltered = document.getElementById('searchInput').value || document.getElementById('filterCategory').value || document.getElementById('filterRoom').value || document.getElementById('filterCondition').value || document.getElementById('filterMinValue').value || document.getElementById('filterMaxValue').value;
+    grid.innerHTML = `<div class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <h3>${isFiltered ? 'No matching items' : 'Your inventory is empty'}</h3>
+      <p>${isFiltered ? 'Try adjusting your filters or search.' : 'Click "Add" to start tracking your belongings.'}</p>
+      ${!isFiltered ? '<button class="btn btn-primary" onclick="openAddModal()">Add Your First Item</button>' : ''}
+    </div>`;
+    return;
+  }
+
+  // Get thumbnails
+  const thumbs = {};
+  for (const item of items) {
+    if (item.photoIds && item.photoIds.length) {
+      try {
+        const p = await dbGet(STORE_PHOTOS, item.photoIds[0]);
+        if (p) thumbs[item.id] = URL.createObjectURL(p.blob);
+      } catch {}
+    }
+  }
+
+  grid.innerHTML = items.map(item => {
+    const photoCount = (item.photoIds || []).length;
+    const price = parseFloat(item.price) || 0;
+    const value = parseFloat(item.value) || 0;
+    let depHtml = '';
+    if (price > 0 && value > 0) {
+      const diff = value - price;
+      const pct = Math.round((diff / price) * 100);
+      if (pct > 0) depHtml = `<span class="depreciation up">+${pct}%</span>`;
+      else if (pct < 0) depHtml = `<span class="depreciation down">${pct}%</span>`;
+      else depHtml = `<span class="depreciation same">0%</span>`;
+    }
+    return `
+    <div class="item-card" onclick="openEditModal('${item.id}')">
+      <div class="thumb">
+        ${thumbs[item.id] ? `<img src="${thumbs[item.id]}" alt="${esc(item.name)}">` : `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`}
+        ${photoCount > 1 ? `<span class="photo-count"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>${photoCount}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${esc(item.name)}</div>
+        <div class="card-meta">
+          <span class="badge">${esc(item.category)}</span>
+          <span class="badge badge-condition" data-c="${item.condition}">${item.condition}</span>
+        </div>
+        <div class="card-meta" style="margin-top:4px">
+          <span class="card-value">${fmt(item.value)} ${depHtml}</span>
+          <span style="font-size:0.72rem;color:var(--text-sec)">${esc(item.room)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('itemCount').textContent = allItems.length;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+function applyFilters() { renderItems(); }
+document.getElementById('searchInput').addEventListener('input', () => renderItems());
+
+// ── Tab switching ──
+function switchTab(btn) {
+  document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-' + btn.dataset.tab).style.display = '';
+  if (btn.dataset.tab === 'dashboard') renderDashboard();
+}
+
+// ── Modal ──
+function openModal() { document.getElementById('itemModal').classList.add('active'); }
+function closeModal() {
+  document.getElementById('itemModal').classList.remove('active');
+  editingId = null;
+  pendingPhotos.forEach(p => URL.revokeObjectURL(p.url));
+  pendingPhotos = [];
+}
+
+function switchModalTab(btn) {
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#itemModal .tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + btn.dataset.pane).classList.add('active');
+}
+
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Add Item';
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('dupeBtn').style.display = 'none';
+  document.getElementById('saveBtn').textContent = 'Save Item';
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemCategory').value = settings.categories[0];
+  document.getElementById('itemRoom').value = settings.rooms[0];
+  document.getElementById('itemPrice').value = '';
+  document.getElementById('itemValue').value = '';
+  document.getElementById('itemDate').value = '';
+  document.getElementById('itemCondition').value = 'New';
+  document.getElementById('itemNotes').value = '';
+  pendingPhotos = [];
+  renderPhotoGrid();
+  switchModalTab(document.querySelector('.modal-tab[data-pane="details"]'));
+  openModal();
+  setTimeout(() => document.getElementById('itemName').focus(), 200);
+}
+
+async function openEditModal(id) {
+  const item = allItems.find(i => i.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Item';
+  document.getElementById('deleteBtn').style.display = '';
+  document.getElementById('dupeBtn').style.display = '';
+  document.getElementById('saveBtn').textContent = 'Update';
+  document.getElementById('itemName').value = item.name;
+  document.getElementById('itemCategory').value = item.category;
+  document.getElementById('itemRoom').value = item.room;
+  document.getElementById('itemPrice').value = item.price || '';
+  document.getElementById('itemValue').value = item.value || '';
+  document.getElementById('itemDate').value = item.purchaseDate || '';
+  document.getElementById('itemCondition').value = item.condition || 'Good';
+  document.getElementById('itemNotes').value = item.notes || '';
+
+  pendingPhotos = [];
+  if (item.photoIds) {
+    for (const pid of item.photoIds) {
+      try {
+        const p = await dbGet(STORE_PHOTOS, pid);
+        if (p) pendingPhotos.push({ id: pid, blob: p.blob, url: URL.createObjectURL(p.blob) });
+      } catch {}
+    }
+  }
+  renderPhotoGrid();
+  switchModalTab(document.querySelector('.modal-tab[data-pane="details"]'));
+  openModal();
+}
+
+async function saveItem() {
+  const name = document.getElementById('itemName').value.trim();
+  if (!name) { toast('Name is required', 'error'); return; }
+
+  const id = editingId || uid();
+  const existing = editingId ? allItems.find(i => i.id === editingId) : null;
+
+  const photoIds = [];
+  for (const p of pendingPhotos) {
+    const pid = p.id || uid();
+    await dbPut(STORE_PHOTOS, { id: pid, blob: p.blob });
+    photoIds.push(pid);
+  }
+
+  if (existing && existing.photoIds) {
+    for (const oldPid of existing.photoIds) {
+      if (!photoIds.includes(oldPid)) await dbDelete(STORE_PHOTOS, oldPid);
+    }
+  }
+
+  const item = {
+    id,
+    name,
+    category: document.getElementById('itemCategory').value,
+    room: document.getElementById('itemRoom').value,
+    price: document.getElementById('itemPrice').value,
+    value: document.getElementById('itemValue').value,
+    purchaseDate: document.getElementById('itemDate').value,
+    condition: document.getElementById('itemCondition').value,
+    notes: document.getElementById('itemNotes').value,
+    photoIds,
+    createdAt: existing ? existing.createdAt : Date.now(),
+    updatedAt: Date.now()
+  };
+
+  await dbPut(STORE_ITEMS, item);
+  allItems = await dbGetAll(STORE_ITEMS);
+  closeModal();
+  renderDashboard();
+  renderItems();
+  toast(editingId ? 'Item updated' : 'Item added');
+}
+
+function confirmDelete() {
+  if (!editingId) return;
+  const item = allItems.find(i => i.id === editingId);
+  document.getElementById('confirmTitle').textContent = 'Delete Item?';
+  document.getElementById('confirmMsg').textContent = `"${item ? item.name : ''}" will be permanently removed.`;
+  const btn = document.getElementById('confirmAction');
+  btn.textContent = 'Delete';
+  btn.className = 'btn btn-danger btn-sm';
+  btn.onclick = deleteItem;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); }
+document.getElementById('confirmOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
+
+async function deleteItem() {
+  if (!editingId) return;
+  closeConfirm();
+  const item = allItems.find(i => i.id === editingId);
+  if (item && item.photoIds) {
+    for (const pid of item.photoIds) await dbDelete(STORE_PHOTOS, pid);
+  }
+  await dbDelete(STORE_ITEMS, editingId);
+  allItems = await dbGetAll(STORE_ITEMS);
+  closeModal();
+  renderDashboard();
+  renderItems();
+  toast('Item deleted');
+}
+
+async function duplicateItem() {
+  if (!editingId) return;
+  const src = allItems.find(i => i.id === editingId);
+  if (!src) return;
+  const newId = uid();
+  const newPhotoIds = [];
+  if (src.photoIds) {
+    for (const pid of src.photoIds) {
+      try {
+        const p = await dbGet(STORE_PHOTOS, pid);
+        if (p) {
+          const npid = uid();
+          await dbPut(STORE_PHOTOS, { id: npid, blob: p.blob });
+          newPhotoIds.push(npid);
+        }
+      } catch {}
+    }
+  }
+  const dup = { ...src, id: newId, name: src.name + ' (copy)', photoIds: newPhotoIds, createdAt: Date.now(), updatedAt: Date.now() };
+  await dbPut(STORE_ITEMS, dup);
+  allItems = await dbGetAll(STORE_ITEMS);
+  closeModal();
+  renderDashboard();
+  renderItems();
+  toast('Item duplicated');
+}
+
+// ── Photos ──
+function renderPhotoGrid() {
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = pendingPhotos.map((p, i) => `
+    <div class="photo-thumb">
+      <img src="${p.url}" alt="">
+      <button class="photo-remove" onclick="event.stopPropagation();removePhoto(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+
+function removePhoto(idx) {
+  URL.revokeObjectURL(pendingPhotos[idx].url);
+  pendingPhotos.splice(idx, 1);
+  renderPhotoGrid();
+}
+
+function handlePhotos(e) { addPhotoFiles(e.target.files); e.target.value = ''; }
+
+function addPhotoFiles(files) {
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) continue;
+    if (pendingPhotos.length >= 6) { toast('Max 6 photos per item', 'error'); break; }
+    const url = URL.createObjectURL(f);
+    pendingPhotos.push({ blob: f, url });
+  }
+  renderPhotoGrid();
+}
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addPhotoFiles(e.dataTransfer.files); });
+
+// ── Export / Import ──
+async function exportJSON() {
+  closeMenu();
+  const photos = await dbGetAll(STORE_PHOTOS);
+  const photosB64 = {};
+  for (const p of photos) {
+    const buf = await p.blob.arrayBuffer();
+    photosB64[p.id] = { type: p.blob.type, data: arrayBufferToBase64(buf) };
+  }
+  const data = { version: 1, exportedAt: new Date().toISOString(), settings, items: allItems, photos: photosB64 };
+  download(JSON.stringify(data, null, 2), 'inventory-backup.json', 'application/json');
+  toast('Backup exported');
+}
+
+function exportCSV() {
+  closeMenu();
+  const header = ['Name','Category','Room','Purchase Price','Estimated Value','Purchase Date','Condition','Notes'];
+  const rows = allItems.map(i => [i.name, i.category, i.room, i.price, i.value, i.purchaseDate, i.condition, i.notes].map(v => '"' + String(v || '').replace(/"/g, '""') + '"'));
+  const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+  download(csv, 'inventory.csv', 'text/csv');
+  toast('CSV exported');
+}
+
+function triggerImport() { closeMenu(); document.getElementById('importInput').click(); }
+
+async function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!data.items || !Array.isArray(data.items)) throw new Error('Invalid backup');
+    for (const item of data.items) await dbPut(STORE_ITEMS, item);
+    if (data.photos) {
+      for (const [pid, pdata] of Object.entries(data.photos)) {
+        const buf = base64ToArrayBuffer(pdata.data);
+        const blob = new Blob([buf], { type: pdata.type });
+        await dbPut(STORE_PHOTOS, { id: pid, blob });
+      }
+    }
+    if (data.settings) { settings = data.settings; saveSettingsToLS(); populateFilterDropdowns(); }
+    allItems = await dbGetAll(STORE_ITEMS);
+    renderDashboard();
+    renderItems();
+    toast(`Imported ${data.items.length} items`);
+  } catch (err) {
+    toast('Import failed: ' + err.message, 'error');
+  }
+  e.target.value = '';
+}
+
+function download(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function arrayBufferToBase64(buf) {
+  let binary = '';
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function base64ToArrayBuffer(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+// ── Insurance Report ──
+async function printInsurance() {
+  closeMenu();
+  const items = [...allItems].sort((a, b) => a.category.localeCompare(b.category));
+  const totalValue = items.reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+
+  const thumbs = {};
+  for (const item of items) {
+    if (item.photoIds && item.photoIds.length) {
+      try {
+        const p = await dbGet(STORE_PHOTOS, item.photoIds[0]);
+        if (p) thumbs[item.id] = URL.createObjectURL(p.blob);
+      } catch {}
+    }
+  }
+
+  const report = document.getElementById('printReport');
+  report.innerHTML = `
+    <h1 style="margin-bottom:4px">Home Inventory Insurance Report</h1>
+    <p style="color:#666;margin-bottom:20px">Generated ${new Date().toLocaleDateString()} | ${items.length} items | Total value: ${fmt(totalValue)}</p>
+    <hr style="margin-bottom:20px">
+    ${items.map(item => `
+      <div style="display:flex;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #eee">
+        ${thumbs[item.id] ? `<img src="${thumbs[item.id]}" style="width:100px;height:100px;object-fit:cover;border-radius:8px">` : ''}
+        <div>
+          <strong style="font-size:16px">${esc(item.name)}</strong><br>
+          <span>Category: ${esc(item.category)} | Room: ${esc(item.room)} | Condition: ${item.condition}</span><br>
+          <span>Purchase Price: ${fmt(item.price)} | Estimated Value: <strong>${fmt(item.value)}</strong></span><br>
+          ${item.purchaseDate ? `<span>Purchased: ${item.purchaseDate}</span><br>` : ''}
+          ${item.notes ? `<span style="color:#666">Notes: ${esc(item.notes)}</span>` : ''}
+        </div>
+      </div>
+    `).join('')}
+  `;
+  setTimeout(() => window.print(), 200);
+}
+
+// ── Printable Summary ──
+function exportPrintableSummary() {
+  closeMenu();
+  const items = [...allItems].sort((a, b) => a.category.localeCompare(b.category));
+  const totalValue = items.reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+  const totalPrice = items.reduce((s, i) => s + (parseFloat(i.price) || 0), 0);
+  const catMap = {};
+  items.forEach(i => {
+    if (!catMap[i.category]) catMap[i.category] = { count: 0, value: 0 };
+    catMap[i.category].count++;
+    catMap[i.category].value += parseFloat(i.value) || 0;
+  });
+  let txt = 'HOME INVENTORY SUMMARY\n';
+  txt += '='.repeat(50) + '\n';
+  txt += `Generated: ${new Date().toLocaleDateString()}\n`;
+  txt += `Total Items: ${items.length}\n`;
+  txt += `Total Purchase Price: ${fmt(totalPrice)}\n`;
+  txt += `Total Estimated Value: ${fmt(totalValue)}\n\n`;
+  txt += 'BY CATEGORY\n' + '-'.repeat(50) + '\n';
+  for (const [cat, data] of Object.entries(catMap).sort((a, b) => b[1].value - a[1].value)) {
+    txt += `${cat}: ${data.count} items, ${fmt(data.value)}\n`;
+  }
+  txt += '\nITEM DETAILS\n' + '-'.repeat(50) + '\n';
+  let lastCat = '';
+  for (const item of items) {
+    if (item.category !== lastCat) { txt += `\n[ ${item.category} ]\n`; lastCat = item.category; }
+    txt += `  ${item.name}`;
+    txt += ` | ${item.condition} | ${item.room}`;
+    txt += ` | Value: ${fmt(item.value)}`;
+    if (item.price) txt += ` | Paid: ${fmt(item.price)}`;
+    if (item.purchaseDate) txt += ` | ${item.purchaseDate}`;
+    txt += '\n';
+    if (item.notes) txt += `    Notes: ${item.notes}\n`;
+  }
+  download(txt, 'inventory-summary.txt', 'text/plain');
+  toast('Summary exported');
+}
+
+// ── Settings ──
+function openSettings() {
+  closeMenu();
+  document.getElementById('setCurrency').value = settings.currency;
+  document.getElementById('setCategories').value = settings.categories.join('\n');
+  document.getElementById('setRooms').value = settings.rooms.join('\n');
+  document.getElementById('settingsModal').classList.add('active');
+}
+
+function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
+
+function saveSettings() {
+  settings.currency = document.getElementById('setCurrency').value.trim() || '$';
+  settings.categories = document.getElementById('setCategories').value.split('\n').map(s => s.trim()).filter(Boolean);
+  settings.rooms = document.getElementById('setRooms').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!settings.categories.length) settings.categories = defaultSettings().categories;
+  if (!settings.rooms.length) settings.rooms = defaultSettings().rooms;
+  saveSettingsToLS();
+  populateFilterDropdowns();
+  renderDashboard();
+  renderItems();
+  closeSettings();
+  toast('Settings saved');
+}
+
+// ── Menu ──
+function toggleMenu(btn) {
+  const menu = btn.nextElementSibling;
+  const isOpen = menu.classList.contains('open');
+  closeMenu();
+  if (!isOpen) menu.classList.add('open');
+}
+
+function closeMenu() { document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open')); }
+document.addEventListener('click', e => { if (!e.target.closest('.dropdown')) closeMenu(); });
+
+// ── Bulk clear all data ──
+function clearAllData() {
+  closeMenu();
+  document.getElementById('confirmTitle').textContent = 'Clear All Data?';
+  document.getElementById('confirmMsg').textContent = 'This will permanently delete all items, photos, and settings.';
+  const btn = document.getElementById('confirmAction');
+  btn.textContent = 'Clear Everything';
+  btn.className = 'btn btn-danger btn-sm';
+  btn.onclick = async () => {
+    closeConfirm();
+    const tx = db.transaction([STORE_ITEMS, STORE_PHOTOS], 'readwrite');
+    tx.objectStore(STORE_ITEMS).clear();
+    tx.objectStore(STORE_PHOTOS).clear();
+    await new Promise(r => { tx.oncomplete = r; });
+    localStorage.removeItem(LS_SETTINGS);
+    settings = defaultSettings();
+    allItems = [];
+    populateFilterDropdowns();
+    renderDashboard();
+    renderItems();
+    updateItemCount();
+    toast('All data cleared');
+  };
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+// Close modals on overlay click
+document.getElementById('itemModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.getElementById('settingsModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSettings(); });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeConfirm(); closeModal(); closeSettings(); return; }
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.key === 'n' || e.key === 'a') { e.preventDefault(); openAddModal(); }
+  if (e.key === '/' || e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+  if (e.key === '1') switchTab(document.querySelector('[data-tab="dashboard"]'));
+  if (e.key === '2') switchTab(document.querySelector('[data-tab="items"]'));
+});
+
+function updateItemCount() {
+  document.getElementById('itemCount').textContent = allItems.length;
+}
+
+// ── Start ──
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Price Tracker — Sparkline Charts, Target Alerts | Evey</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Track product prices across marketplaces. Set targets, log history, visualize trends.">
+<meta property="og:title" content="Free Price Tracker — Sparkline Charts, Target Alerts | Evey">
+<meta property="og:description" content="Track product prices across marketplaces. Set targets, log history, visualize trends.">
+<meta property="og:url" content="https://prices.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Price Tracker — Sparkline Charts, Target Alerts | Evey","url":"https://prices.evey.cc/","description":"Track product prices across marketplaces. Set targets, log history, visualize trends.","applicationCategory":"ProductivityApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://prices.evey.cc/">
+<style>
+/* ========== RESET ========== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ========== VARIABLES (from DESIGN-SYSTEM.css) ========== */
+:root{
+  /* Backgrounds */
+  --bg:#0a0a0f;
+  --surface:#13131f;
+  --surface-hover:#1a1a2e;
+  --overlay:rgba(0,0,0,0.7);
+
+  /* Accent */
+  --accent:#00ff42;
+  --accent-hover:#00cc35;
+  --accent-dim:rgba(0,255,66,0.1);
+
+  /* Text — NO grey. White for primary, light for secondary, muted for tertiary */
+  --text:#f0f0f5;
+  --text-sec:#c8c8d8;
+  --text-dim:#8888a0;
+
+  /* Borders */
+  --border:rgba(255,255,255,0.08);
+  --border-hover:rgba(255,255,255,0.15);
+
+  /* Semantic */
+  --danger:#ff4455;
+  --warn:#ffaa00;
+  --success:#00ff42;
+
+  /* Typography */
+  --font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
+  --mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;
+
+  /* Spacing (8px grid) */
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px;
+
+  /* Radii */
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-full:99px;
+
+  /* Transitions */
+  --ease:cubic-bezier(0.16,1,0.3,1);
+  --dur:0.2s;
+}
+
+/* ========== BASE ========== */
+html,body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--font);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  min-height:100vh
+}
+a{color:var(--accent);text-decoration:none;transition:opacity var(--dur)}
+a:hover{opacity:0.85}
+button{cursor:pointer;font-family:var(--font);border:none;outline:none}
+textarea{resize:vertical;min-height:60px}
+
+/* Animated BG */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+/* Floating Pill Nav (Desktop) */
+
+/* ========== BUTTONS ========== */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 20px;border-radius:var(--r-md);
+  font-size:0.85rem;font-weight:600;font-family:var(--font);
+  cursor:pointer;transition:all var(--dur) var(--ease);
+  border:none;text-decoration:none;line-height:1
+}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,255,66,0.2);opacity:1}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);opacity:1}
+.btn-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border);padding:6px 14px;font-size:0.78rem}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-hover);opacity:1}
+.btn-sm{padding:6px 12px;font-size:0.75rem}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dd3344;opacity:1}
+.btn-danger-ghost{background:transparent;color:var(--danger);border:1px solid rgba(255,68,85,0.3);padding:6px 12px;font-size:0.75rem}
+.btn-danger-ghost:hover{background:rgba(255,68,85,0.1);border-color:var(--danger);opacity:1}
+
+/* ========== CARDS ========== */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;
+  transition:all var(--dur) var(--ease);
+  display:block;color:inherit;text-decoration:none
+}
+.card:hover{transform:translateY(-2px);border-color:var(--border-hover);background:var(--surface-hover);opacity:1}
+.card-title{font-size:0.92rem;font-weight:600;color:#fff;margin-bottom:4px}
+.card-desc{font-size:0.82rem;color:var(--text-sec);font-weight:400;line-height:1.5}
+.card-badge{display:inline-block;font-size:0.62rem;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);margin-bottom:8px;font-family:var(--mono)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+
+/* ========== STATS ========== */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
+.stat{background:var(--surface);padding:18px 12px;text-align:center}
+.stat-value{font-size:1.4rem;font-weight:800;color:var(--accent);font-family:var(--mono)}
+.stat-label{font-size:0.62rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+
+/* ========== INPUTS ========== */
+input[type="text"],input[type="number"],input[type="url"],input[type="date"],input[type="search"],
+textarea,select{
+  width:100%;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:var(--r-md);
+  padding:10px 14px;font-family:var(--font);font-size:0.88rem;
+  outline:none;transition:border-color var(--dur)
+}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+::placeholder{color:var(--text-dim)}
+
+/* ========== MODAL ========== */
+.modal-overlay{
+  position:fixed;inset:0;background:var(--overlay);
+  display:none;align-items:center;justify-content:center;
+  z-index:500;padding:20px
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:0;
+  width:100%;max-width:480px;max-height:85vh;overflow-y:auto
+}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:1.1rem;font-weight:700;color:#fff}
+.modal-close{width:32px;height:32px;border-radius:var(--r-sm);background:transparent;color:var(--text-dim);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--dur)}
+.modal-close:hover{background:var(--surface-hover);color:var(--text)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ========== TOAST ========== */
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--surface);color:var(--text);
+  padding:10px 20px;border-radius:var(--r-md);
+  font-size:0.82rem;font-weight:500;
+  z-index:900;transition:transform 0.3s var(--ease);
+  border:1px solid var(--border);
+  box-shadow:0 4px 16px rgba(0,0,0,0.4)
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.toast-success{border-color:var(--accent);color:var(--accent)}
+.toast.toast-error{border-color:var(--danger);color:var(--danger)}
+
+/* ========== SECTION ========== */
+.section{max-width:900px;margin:0 auto;padding:0 24px 48px}
+.section-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:16px}
+
+/* ========== FOOTER ========== */
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:800px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+
+/* ========== APP-SPECIFIC ========== */
+
+/* Page body offset for fixed nav */
+.page-body{padding-top:80px}
+
+/* Toolbar */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.search-wrap{flex:1;min-width:200px;position:relative}
+.search-wrap input{padding-left:36px}
+.search-wrap::before{content:"";position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;border:2px solid var(--text-dim);border-radius:50%;pointer-events:none}
+.filter-group{display:flex;gap:8px;align-items:center}
+.filter-group select{width:auto;min-width:120px}
+
+/* Product cards */
+.product-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;
+  transition:all var(--dur) var(--ease);
+  position:relative;overflow:hidden
+}
+.product-card:hover{transform:translateY(-2px);border-color:var(--border-hover);background:var(--surface-hover)}
+.product-card.at-target{border-color:var(--accent);box-shadow:0 0 20px rgba(0,255,66,0.1)}
+.product-card.at-target::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.product-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.product-header h3{font-size:0.92rem;font-weight:600;color:#fff;flex:1;margin-right:8px;word-break:break-word}
+.marketplace-badge{font-size:0.62rem;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
+.price-row{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.current-price{font-size:1.5rem;font-weight:700;color:#fff;font-family:var(--mono)}
+.target-price{font-size:0.82rem;color:var(--text-sec)}
+.delta{font-size:0.75rem;font-weight:600;padding:2px 8px;border-radius:var(--r-sm)}
+.delta.positive{background:rgba(0,255,66,0.12);color:var(--accent)}
+.delta.negative{background:rgba(255,68,85,0.12);color:var(--danger)}
+.delta.neutral{background:rgba(255,170,0,0.12);color:var(--warn)}
+
+/* Sparkline */
+.sparkline-container{margin:12px 0;height:40px}
+.sparkline-container svg{width:100%;height:100%}
+.sparkline-line{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.sparkline-area{fill:url(#sparkGrad);opacity:0.3}
+.sparkline-dot{fill:var(--accent)}
+
+/* Card footer */
+.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.card-actions{display:flex;gap:6px}
+.card-notes{font-size:0.78rem;color:var(--text-sec);margin-top:8px;font-style:italic}
+
+/* History modal */
+.history-list{max-height:300px;overflow-y:auto}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:8px}
+.history-item:last-child{border:none}
+.history-date{font-size:0.78rem;color:var(--text-sec);font-family:var(--mono)}
+.history-price{font-size:0.92rem;font-weight:600;color:#fff;font-family:var(--mono)}
+.history-add{display:flex;gap:8px;margin-bottom:16px}
+.history-add input{flex:1}
+
+/* Settings */
+.settings-section{margin-bottom:24px}
+.settings-section h3{font-size:0.72rem;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.08em}
+.preset-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.preset-tag{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--r-full);background:var(--surface-hover);border:1px solid var(--border);font-size:0.78rem;color:var(--text-sec)}
+.preset-tag button{background:none;color:var(--danger);font-size:16px;line-height:1;padding:0 0 0 4px;cursor:pointer;border:none}
+.add-preset{display:flex;gap:8px;margin-top:8px}
+.add-preset input{flex:1}
+
+/* IO buttons */
+.io-buttons{display:flex;gap:8px}
+.file-input{display:none}
+
+/* Empty state */
+.empty-state{text-align:center;padding:80px 24px;color:var(--text-sec);grid-column:1/-1}
+.empty-state h2{font-size:1.1rem;color:var(--text);margin-bottom:8px}
+.empty-state p{margin-bottom:24px;font-size:0.88rem;color:var(--text-sec)}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:640px){
+
+  body{padding-bottom:64px}
+  .footer{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .cards{grid-template-columns:1fr}
+  .section{padding:0 20px 40px}
+  .toolbar{flex-direction:column}
+  .search-wrap{width:100%;min-width:0}
+  .filter-group{width:100%}
+  .filter-group select{flex:1}
+  .form-row{grid-template-columns:1fr}
+  .price-row{gap:8px}
+}
+
+/* ========== REDUCED MOTION ========== */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div class="page-body">
+
+<!-- Stats Dashboard -->
+<section class="section" style="padding-top:24px;padding-bottom:16px">
+  <div class="section-label">Dashboard</div>
+  <div class="stats" id="dashboard"></div>
+</section>
+
+<!-- Toolbar -->
+<section class="section" style="padding-bottom:0">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Search products..." oninput="renderProducts()">
+    </div>
+    <div class="filter-group">
+      <select id="filterMarketplace" onchange="renderProducts()">
+        <option value="">All Marketplaces</option>
+      </select>
+      <select id="filterSort" onchange="renderProducts()">
+        <option value="name">Name</option>
+        <option value="price-asc">Price: Low-High</option>
+        <option value="price-desc">Price: High-Low</option>
+        <option value="delta">Best Deals</option>
+        <option value="newest">Newest</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-left:auto">
+      <button class="btn btn-ghost btn-sm" onclick="openSettings()">Settings</button>
+      <button class="btn btn-ghost btn-sm" onclick="openImportExport()">I/O</button>
+      <button class="btn btn-primary btn-sm" onclick="openAddProduct()">+ Add</button>
+    </div>
+  </div>
+</section>
+
+<!-- Product Grid -->
+<section class="section" style="padding-top:16px">
+  <div class="cards" id="productGrid"></div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://evey.cc">Home</a>
+    <a href="https://evey.cc/shop">Donate</a>
+    <a href="https://listings.evey.cc">Listings</a>
+    <a href="https://habits.evey.cc">Habits</a>
+    <a href="https://github.com/42-evey">GitHub</a>
+  </div>
+  <div class="footer-copy">evey.cc — All data stays in your browser</div>
+</footer>
+
+</div><!-- /.page-body -->
+
+<!-- Add/Edit Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Product</h2>
+      <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label>Product Name *</label>
+        <input type="text" id="prodName" placeholder="e.g. Sony WH-1000XM5">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Current Price *</label>
+          <input type="number" id="prodPrice" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Target Price</label>
+          <input type="number" id="prodTarget" step="0.01" min="0" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>URL</label>
+        <input type="url" id="prodUrl" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Marketplace</label>
+          <select id="prodMarketplace"></select>
+        </div>
+        <div class="form-group">
+          <label>Or Type New</label>
+          <input type="text" id="prodMarketplaceCustom" placeholder="Custom marketplace">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="prodNotes" placeholder="Any notes..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Price History Modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="historyTitle">Price History</h2>
+      <button class="modal-close" onclick="closeModal('historyModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="historyProductId">
+      <div class="history-add">
+        <input type="number" id="historyPrice" step="0.01" min="0" placeholder="New price">
+        <input type="date" id="historyDate">
+        <button class="btn btn-primary btn-sm" onclick="addHistoryEntry()">Log</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Settings</h2>
+      <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <h3>Currency</h3>
+        <div class="form-group">
+          <select id="settingsCurrency">
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+            <option value="CZK">CZK</option>
+            <option value="PLN">PLN</option>
+            <option value="CHF">CHF</option>
+            <option value="JPY">JPY</option>
+            <option value="CAD">CAD</option>
+            <option value="AUD">AUD</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Marketplace Presets</h3>
+        <div class="preset-list" id="presetList"></div>
+        <div class="add-preset">
+          <input type="text" id="newPreset" placeholder="Add marketplace...">
+          <button class="btn btn-primary btn-sm" onclick="addPreset()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import/Export Modal -->
+<div class="modal-overlay" id="ioModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Import / Export</h2>
+      <button class="modal-close" onclick="closeModal('ioModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-sec);font-size:0.85rem;margin-bottom:20px">Backup or restore your tracked products as JSON.</p>
+      <div class="io-buttons">
+        <button class="btn btn-primary" onclick="exportData()">Export JSON</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">Import JSON</button>
+        <input type="file" id="importFile" class="file-input" accept=".json" onchange="importData(event)">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toastEl" class="toast"></div>
+
+<!-- SVG gradient definition for sparklines -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ff42" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00ff42" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<script>
+// --- State ---
+const STORAGE_KEY = 'priceTracker';
+const SETTINGS_KEY = 'priceTrackerSettings';
+
+const CURRENCY_SYMBOLS = {
+  EUR: '\u20AC', USD: '$', GBP: '\u00A3', CZK: 'K\u010D', PLN: 'z\u0142',
+  CHF: 'CHF', JPY: '\u00A5', CAD: 'C$', AUD: 'A$'
+};
+
+const DEFAULT_PRESETS = ['Amazon', 'eBay', 'AliExpress', 'Newegg', 'Best Buy'];
+
+function loadProducts() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveProducts(products) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+}
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    return s && s.currency ? s : defaultSettings();
+  } catch { return defaultSettings(); }
+}
+
+function defaultSettings() {
+  return { currency: 'EUR', presets: [...DEFAULT_PRESETS] };
+}
+
+function saveSettingsData(s) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+
+function getCurrencySymbol() {
+  return CURRENCY_SYMBOLS[loadSettings().currency] || loadSettings().currency + ' ';
+}
+
+function formatPrice(n) {
+  if (n == null || isNaN(n)) return '--';
+  const s = loadSettings();
+  return getCurrencySymbol() + parseFloat(n).toFixed(s.currency === 'JPY' ? 0 : 2);
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// --- Toast ---
+let toastTimer = null;
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toastEl');
+  el.textContent = msg;
+  el.className = 'toast toast-' + type + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 2800);
+}
+
+// --- Modal helpers ---
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+});
+
+// --- Dashboard ---
+function renderDashboard() {
+  const products = loadProducts();
+  const total = products.length;
+  const atTarget = products.filter(p => p.targetPrice && p.currentPrice <= p.targetPrice).length;
+  const totalSavings = products.reduce((sum, p) => {
+    if (p.history && p.history.length > 1) {
+      const maxP = Math.max(...p.history.map(h => h.price));
+      return sum + (maxP - p.currentPrice);
+    }
+    return sum;
+  }, 0);
+  const avgSavings = total > 0 ? totalSavings / total : 0;
+
+  document.getElementById('dashboard').innerHTML = `
+    <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Products Tracked</div></div>
+    <div class="stat"><div class="stat-value">${atTarget}</div><div class="stat-label">At Target</div></div>
+    <div class="stat"><div class="stat-value">${formatPrice(totalSavings)}</div><div class="stat-label">Total Savings</div></div>
+    <div class="stat"><div class="stat-value">${formatPrice(avgSavings)}</div><div class="stat-label">Avg Savings</div></div>
+  `;
+}
+
+// --- Marketplace filter dropdown ---
+function renderMarketplaceFilter() {
+  const products = loadProducts();
+  const settings = loadSettings();
+  const marketplaces = new Set(settings.presets);
+  products.forEach(p => { if (p.marketplace) marketplaces.add(p.marketplace); });
+
+  const sel = document.getElementById('filterMarketplace');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All Marketplaces</option>' +
+    [...marketplaces].sort().map(m => `<option value="${m}"${m === current ? ' selected' : ''}>${m}</option>`).join('');
+}
+
+// --- Sparkline ---
+function buildSparkline(history) {
+  if (!history || history.length < 2) return '';
+  const prices = history.map(h => h.price);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const w = 280, h = 36, pad = 2;
+
+  const points = prices.map((p, i) => {
+    const x = pad + (i / (prices.length - 1)) * (w - 2 * pad);
+    const y = pad + (1 - (p - min) / range) * (h - 2 * pad);
+    return { x, y };
+  });
+
+  const line = points.map((pt, i) => (i === 0 ? 'M' : 'L') + pt.x.toFixed(1) + ',' + pt.y.toFixed(1)).join(' ');
+  const area = line + ` L${points[points.length - 1].x.toFixed(1)},${h} L${points[0].x.toFixed(1)},${h} Z`;
+  const last = points[points.length - 1];
+
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <path class="sparkline-area" d="${area}"/>
+    <path class="sparkline-line" d="${line}"/>
+    <circle class="sparkline-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="2.5"/>
+  </svg>`;
+}
+
+// --- Render Products ---
+function renderProducts() {
+  let products = loadProducts();
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const marketplace = document.getElementById('filterMarketplace').value;
+  const sort = document.getElementById('filterSort').value;
+
+  // Filter
+  if (query) {
+    products = products.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      (p.marketplace || '').toLowerCase().includes(query) ||
+      (p.notes || '').toLowerCase().includes(query)
+    );
+  }
+  if (marketplace) {
+    products = products.filter(p => p.marketplace === marketplace);
+  }
+
+  // Sort
+  switch (sort) {
+    case 'name': products.sort((a, b) => a.name.localeCompare(b.name)); break;
+    case 'price-asc': products.sort((a, b) => a.currentPrice - b.currentPrice); break;
+    case 'price-desc': products.sort((a, b) => b.currentPrice - a.currentPrice); break;
+    case 'delta': products.sort((a, b) => {
+      const da = a.targetPrice ? ((a.currentPrice - a.targetPrice) / a.targetPrice) : 999;
+      const db = b.targetPrice ? ((b.currentPrice - b.targetPrice) / b.targetPrice) : 999;
+      return da - db;
+    }); break;
+    case 'newest': products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); break;
+  }
+
+  const grid = document.getElementById('productGrid');
+
+  if (products.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <h2>${query || marketplace ? 'No matches found' : 'No products yet'}</h2>
+      <p>${query || marketplace ? 'Try adjusting your search or filters.' : 'Start tracking prices by adding your first product.'}</p>
+      ${!query && !marketplace ? '<button class="btn btn-primary" onclick="openAddProduct()">+ Add Product</button>' : ''}
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = products.map(p => {
+    const atTarget = p.targetPrice && p.currentPrice <= p.targetPrice;
+    let deltaText = '', deltaClass = 'neutral';
+    if (p.targetPrice) {
+      const pct = ((p.targetPrice - p.currentPrice) / p.targetPrice * 100);
+      if (pct > 0) { deltaText = pct.toFixed(1) + '% below'; deltaClass = 'positive'; }
+      else if (pct < 0) { deltaText = Math.abs(pct).toFixed(1) + '% above'; deltaClass = 'negative'; }
+      else { deltaText = 'At target'; deltaClass = 'positive'; }
+    }
+
+    return `<div class="product-card${atTarget ? ' at-target' : ''}">
+      <div class="product-header">
+        <h3>${escHtml(p.name)}</h3>
+        ${p.marketplace ? `<span class="marketplace-badge">${escHtml(p.marketplace)}</span>` : ''}
+      </div>
+      <div class="price-row">
+        <span class="current-price">${formatPrice(p.currentPrice)}</span>
+        ${p.targetPrice ? `<span class="target-price">Target: ${formatPrice(p.targetPrice)}</span>` : ''}
+        ${deltaText ? `<span class="delta ${deltaClass}">${deltaText}</span>` : ''}
+      </div>
+      <div class="sparkline-container">${buildSparkline(p.history)}</div>
+      ${p.notes ? `<div class="card-notes">${escHtml(p.notes)}</div>` : ''}
+      <div class="card-foot">
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openHistory('${p.id}')">History</button>
+          <button class="btn btn-ghost btn-sm" onclick="openEditProduct('${p.id}')">Edit</button>
+          <button class="btn btn-danger-ghost" onclick="deleteProduct('${p.id}')">Delete</button>
+        </div>
+        ${p.url ? `<a href="${escHtml(p.url)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Visit</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// --- Add / Edit Product ---
+function openAddProduct() {
+  document.getElementById('modalTitle').textContent = 'Add Product';
+  document.getElementById('editId').value = '';
+  document.getElementById('prodName').value = '';
+  document.getElementById('prodPrice').value = '';
+  document.getElementById('prodTarget').value = '';
+  document.getElementById('prodUrl').value = '';
+  document.getElementById('prodMarketplaceCustom').value = '';
+  document.getElementById('prodNotes').value = '';
+  populateMarketplaceSelect('');
+  openModal('productModal');
+  document.getElementById('prodName').focus();
+}
+
+function openEditProduct(id) {
+  const p = loadProducts().find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('modalTitle').textContent = 'Edit Product';
+  document.getElementById('editId').value = id;
+  document.getElementById('prodName').value = p.name;
+  document.getElementById('prodPrice').value = p.currentPrice;
+  document.getElementById('prodTarget').value = p.targetPrice || '';
+  document.getElementById('prodUrl').value = p.url || '';
+  document.getElementById('prodMarketplaceCustom').value = '';
+  document.getElementById('prodNotes').value = p.notes || '';
+  populateMarketplaceSelect(p.marketplace || '');
+  openModal('productModal');
+}
+
+function populateMarketplaceSelect(selected) {
+  const settings = loadSettings();
+  const products = loadProducts();
+  const all = new Set(settings.presets);
+  products.forEach(p => { if (p.marketplace) all.add(p.marketplace); });
+  const sel = document.getElementById('prodMarketplace');
+  sel.innerHTML = '<option value="">-- Select --</option>' +
+    [...all].sort().map(m => `<option value="${m}"${m === selected ? ' selected' : ''}>${m}</option>`).join('');
+}
+
+function saveProduct() {
+  const name = document.getElementById('prodName').value.trim();
+  const price = parseFloat(document.getElementById('prodPrice').value);
+  if (!name) { toast('Product name is required', 'error'); return; }
+  if (isNaN(price) || price < 0) { toast('Valid price is required', 'error'); return; }
+
+  const target = parseFloat(document.getElementById('prodTarget').value) || null;
+  const url = document.getElementById('prodUrl').value.trim();
+  const marketplace = document.getElementById('prodMarketplaceCustom').value.trim() || document.getElementById('prodMarketplace').value;
+  const notes = document.getElementById('prodNotes').value.trim();
+  const editId = document.getElementById('editId').value;
+
+  const products = loadProducts();
+
+  if (editId) {
+    const idx = products.findIndex(p => p.id === editId);
+    if (idx === -1) return;
+    const prev = products[idx];
+    // If price changed, add to history
+    if (prev.currentPrice !== price) {
+      if (!prev.history) prev.history = [];
+      prev.history.push({ price, date: new Date().toISOString().slice(0, 10) });
+    }
+    products[idx] = { ...prev, name, currentPrice: price, targetPrice: target, url, marketplace, notes };
+    toast('Product updated');
+  } else {
+    const now = new Date().toISOString().slice(0, 10);
+    products.push({
+      id: generateId(),
+      name, currentPrice: price, targetPrice: target, url, marketplace, notes,
+      history: [{ price, date: now }],
+      createdAt: Date.now()
+    });
+    toast('Product added');
+  }
+
+  saveProducts(products);
+  closeModal('productModal');
+  refresh();
+}
+
+function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  const products = loadProducts().filter(p => p.id !== id);
+  saveProducts(products);
+  toast('Product deleted');
+  refresh();
+}
+
+// --- Price History ---
+function openHistory(id) {
+  const p = loadProducts().find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('historyProductId').value = id;
+  document.getElementById('historyTitle').textContent = p.name + ' - Price History';
+  document.getElementById('historyDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('historyPrice').value = '';
+  renderHistoryList(p);
+  openModal('historyModal');
+}
+
+function renderHistoryList(p) {
+  const list = document.getElementById('historyList');
+  if (!p.history || p.history.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-sec);text-align:center;padding:20px">No history yet.</p>';
+    return;
+  }
+  const sorted = [...p.history].sort((a, b) => b.date.localeCompare(a.date));
+  list.innerHTML = sorted.map((h, i) => {
+    const prev = sorted[i + 1];
+    let change = '';
+    if (prev) {
+      const diff = h.price - prev.price;
+      if (diff > 0) change = `<span style="color:var(--danger);font-size:0.75rem">+${formatPrice(diff)}</span>`;
+      else if (diff < 0) change = `<span style="color:var(--accent);font-size:0.75rem">${formatPrice(diff)}</span>`;
+    }
+    return `<div class="history-item">
+      <span class="history-date">${h.date}</span>
+      <span>${change}</span>
+      <span class="history-price">${formatPrice(h.price)}</span>
+      <button class="btn btn-danger-ghost" onclick="removeHistoryEntry('${p.id}',${sorted.length - 1 - i})" style="padding:2px 8px">&times;</button>
+    </div>`;
+  }).join('');
+}
+
+function addHistoryEntry() {
+  const id = document.getElementById('historyProductId').value;
+  const price = parseFloat(document.getElementById('historyPrice').value);
+  const date = document.getElementById('historyDate').value;
+  if (isNaN(price) || price < 0) { toast('Enter a valid price', 'error'); return; }
+  if (!date) { toast('Select a date', 'error'); return; }
+
+  const products = loadProducts();
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  if (!p.history) p.history = [];
+  p.history.push({ price, date });
+  p.history.sort((a, b) => a.date.localeCompare(b.date));
+  p.currentPrice = p.history[p.history.length - 1].price;
+  saveProducts(products);
+  renderHistoryList(p);
+  document.getElementById('historyPrice').value = '';
+  toast('Price logged');
+  renderDashboard();
+  renderProducts();
+}
+
+function removeHistoryEntry(productId, index) {
+  const products = loadProducts();
+  const p = products.find(x => x.id === productId);
+  if (!p || !p.history) return;
+  p.history.splice(index, 1);
+  if (p.history.length > 0) {
+    p.currentPrice = p.history[p.history.length - 1].price;
+  }
+  saveProducts(products);
+  renderHistoryList(p);
+  renderDashboard();
+  renderProducts();
+}
+
+// --- Settings ---
+function openSettings() {
+  const s = loadSettings();
+  document.getElementById('settingsCurrency').value = s.currency;
+  renderPresets(s.presets);
+  openModal('settingsModal');
+}
+
+function renderPresets(presets) {
+  document.getElementById('presetList').innerHTML = presets.map((p, i) =>
+    `<span class="preset-tag">${escHtml(p)}<button onclick="removePreset(${i})">&times;</button></span>`
+  ).join('');
+}
+
+function addPreset() {
+  const input = document.getElementById('newPreset');
+  const val = input.value.trim();
+  if (!val) return;
+  const s = loadSettings();
+  if (!s.presets.includes(val)) {
+    s.presets.push(val);
+    saveSettingsData(s);
+    renderPresets(s.presets);
+  }
+  input.value = '';
+}
+
+function removePreset(i) {
+  const s = loadSettings();
+  s.presets.splice(i, 1);
+  saveSettingsData(s);
+  renderPresets(s.presets);
+}
+
+function saveSettings() {
+  const s = loadSettings();
+  s.currency = document.getElementById('settingsCurrency').value;
+  saveSettingsData(s);
+  closeModal('settingsModal');
+  toast('Settings saved');
+  refresh();
+}
+
+// --- Import / Export ---
+function openImportExport() { openModal('ioModal'); }
+
+function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    settings: loadSettings(),
+    products: loadProducts()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'price-tracker-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Data exported');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.products || !Array.isArray(data.products)) {
+        toast('Invalid backup file', 'error');
+        return;
+      }
+      // Merge: add imported products that don't exist by id
+      const existing = loadProducts();
+      const existingIds = new Set(existing.map(p => p.id));
+      let added = 0;
+      data.products.forEach(p => {
+        if (!existingIds.has(p.id)) {
+          existing.push(p);
+          added++;
+        }
+      });
+      saveProducts(existing);
+      if (data.settings) saveSettingsData(data.settings);
+      toast(`Imported ${added} new product${added !== 1 ? 's' : ''}`);
+      closeModal('ioModal');
+      refresh();
+    } catch {
+      toast('Failed to parse file', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// --- PWA ---
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').catch(() => {});
+}
+
+// --- Refresh ---
+function refresh() {
+  renderDashboard();
+  renderMarketplaceFilter();
+  renderProducts();
+}
+
+// --- Keyboard shortcuts ---
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+  if (e.key === 'n' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'SELECT') {
+    e.preventDefault();
+    openAddProduct();
+  }
+});
+
+// --- Init ---
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Hash Generator — Evey
+
+> Free online hash generator. Generate MD5, SHA-1, SHA-256, SHA-512 hashes and HMAC from text or files. No tracking, no ads, works offline.
+
+- URL: https://hash.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Developer Tools
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Generate MD5, SHA-1, SHA-256, SHA-512 hashes
+- HMAC generation with custom keys
+- Hash text input or upload files
+- Compare hashes for verification
+- Copy hash output to clipboard
+- File hashing without upload (processed locally)
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

@@ -1,0 +1,27 @@
+# Regex Tester — Evey
+
+> Free online regex tester with live matching, capture groups, flags, and an interactive cheat sheet. No tracking, no ads, works offline.
+
+- URL: https://regex.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Developer Tools
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Live regex matching as you type
+- Support for all JavaScript regex flags (g, i, m, s, u, y)
+- Capture group highlighting and extraction
+- Match count and position display
+- Built-in interactive cheat sheet
+- Test against multiple input strings
+- Dark theme optimized for readability
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

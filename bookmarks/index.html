@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Free Online Bookmark Manager — Tags, Search, Export | Evey</title>
+<meta name="description" content="Private bookmark manager with tags, search, and collections. All data stays in your browser.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Free Online Bookmark Manager — Tags, Search, Export | Evey">
+<meta property="og:description" content="Private bookmark manager with tags, search, and collections. All data stays in your browser.">
+<meta property="og:url" content="https://bookmarks.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Online Bookmark Manager — Tags, Search, Export | Evey","url":"https://bookmarks.evey.cc/","description":"Private bookmark manager with tags, search, and collections. All data stays in your browser.","applicationCategory":"ProductivityApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://bookmarks.evey.cc/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--danger:#ff4455;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+.app{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:80px 24px 48px}
+
+.toolbar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:0.88rem;outline:none;transition:border-color var(--dur)}
+.search:focus{border-color:var(--accent)}
+.search::placeholder{color:var(--text-dim)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:0.85rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all var(--dur) var(--ease);border:none}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border);padding:8px 14px;font-size:0.78rem}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-hover)}
+.btn-sm{padding:6px 12px;font-size:0.75rem}
+.btn-danger{background:var(--danger);color:#fff}
+
+.tags-bar{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;overflow-x:auto}
+.tag-pill{padding:5px 12px;border-radius:99px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all var(--dur);border:1px solid var(--border);background:transparent;color:var(--text-sec);font-family:var(--font);white-space:nowrap}
+.tag-pill:hover{border-color:var(--accent);color:var(--accent)}
+.tag-pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;border-radius:10px;overflow:hidden;margin-bottom:20px;border:1px solid var(--border)}
+.stat{background:var(--surface);padding:14px 8px;text-align:center}
+.stat-value{font-size:1.2rem;font-weight:800;color:var(--accent);font-family:var(--mono)}
+.stat-label{font-size:0.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+
+.bookmark-list{display:flex;flex-direction:column;gap:8px}
+.bookmark{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all var(--dur) var(--ease);position:relative}
+.bookmark:hover{border-color:var(--border-hover);background:var(--surface-hover)}
+.bookmark-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.bookmark-title{font-size:0.92rem;font-weight:600;color:#fff;cursor:pointer;word-break:break-word}
+.bookmark-title:hover{color:var(--accent)}
+.bookmark-url{font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);word-break:break-all;margin-top:2px}
+.bookmark-desc{font-size:0.82rem;color:var(--text-sec);margin-top:6px;line-height:1.5}
+.bookmark-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.bookmark-tag{font-size:0.62rem;padding:2px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);font-family:var(--mono);font-weight:600}
+.bookmark-date{font-size:0.62rem;color:var(--text-dim);margin-left:auto}
+.bookmark-actions{display:flex;gap:4px;flex-shrink:0}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text-sec)}
+.empty h3{color:#fff;font-size:1.1rem;margin-bottom:6px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:500;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto}
+.modal h2{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.form-group input,.form-group textarea{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--font);font-size:0.88rem;outline:none;transition:border-color var(--dur)}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-actions{display:flex;gap:8px;margin-top:18px}
+.form-actions .btn{flex:1}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:700px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+
+@media(max-width:640px){
+
+  .app{padding:24px 20px 80px}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  body{padding-bottom:64px}
+  .footer{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div class="app">
+  <div class="toolbar">
+    <input class="search" id="search" type="search" placeholder="Search bookmarks..." oninput="render()">
+    <button class="btn btn-ghost btn-sm" onclick="showImportExport()">I/O</button>
+    <button class="btn btn-primary" onclick="showAdd()">+ Add</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="s-total">0</div><div class="stat-label">Bookmarks</div></div>
+    <div class="stat"><div class="stat-value" id="s-tags">0</div><div class="stat-label">Tags</div></div>
+    <div class="stat"><div class="stat-value" id="s-today">0</div><div class="stat-label">Added Today</div></div>
+  </div>
+
+  <div class="tags-bar" id="tags-bar"></div>
+  <div class="bookmark-list" id="list"></div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://evey.cc">Home</a>
+    <a href="https://evey.cc/shop">Donate</a>
+    <a href="https://habits.evey.cc">Habits</a>
+    <a href="https://listings.evey.cc">Listings</a>
+    <a href="https://github.com/42-evey">GitHub</a>
+  </div>
+  <div class="footer-copy">evey.cc — All data stays in your browser</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let bookmarks = JSON.parse(localStorage.getItem('evey-bookmarks') || '[]');
+let activeTag = null;
+let editingId = null;
+
+function save() { localStorage.setItem('evey-bookmarks', JSON.stringify(bookmarks)); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+function esc(s) { if(!s)return''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function toast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2500); }
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+
+function getAllTags() {
+  const tags = new Set();
+  bookmarks.forEach(b => (b.tags||[]).forEach(t => tags.add(t)));
+  return [...tags].sort();
+}
+
+function render() {
+  const query = (document.getElementById('search').value || '').toLowerCase();
+  let filtered = bookmarks;
+
+  if (query) {
+    filtered = filtered.filter(b =>
+      (b.title||'').toLowerCase().includes(query) ||
+      (b.url||'').toLowerCase().includes(query) ||
+      (b.description||'').toLowerCase().includes(query) ||
+      (b.tags||[]).some(t => t.toLowerCase().includes(query))
+    );
+  }
+
+  if (activeTag) {
+    filtered = filtered.filter(b => (b.tags||[]).includes(activeTag));
+  }
+
+  filtered.sort((a, b) => new Date(b.created) - new Date(a.created));
+
+  // Stats
+  const today = new Date().toLocaleDateString();
+  document.getElementById('s-total').textContent = bookmarks.length;
+  document.getElementById('s-tags').textContent = getAllTags().length;
+  document.getElementById('s-today').textContent = bookmarks.filter(b => new Date(b.created).toLocaleDateString() === today).length;
+
+  // Tags bar
+  const tags = getAllTags();
+  document.getElementById('tags-bar').innerHTML = tags.length ? tags.map(t =>
+    `<button class="tag-pill${activeTag===t?' active':''}" onclick="toggleTag('${esc(t)}')">${esc(t)}</button>`
+  ).join('') : '';
+
+  // List
+  const list = document.getElementById('list');
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><h3>${bookmarks.length===0?'No bookmarks yet':'No matches'}</h3><p>${bookmarks.length===0?'Add your first bookmark to get started.':'Try a different search or tag.'}</p>${bookmarks.length===0?'<button class="btn btn-primary" style="margin-top:16px" onclick="showAdd()">Add Bookmark</button>':''}</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(b => {
+    const domain = b.url ? new URL(b.url).hostname.replace('www.','') : '';
+    const date = new Date(b.created).toLocaleDateString();
+    const tagsHtml = (b.tags||[]).map(t => `<span class="bookmark-tag">${esc(t)}</span>`).join('');
+    return `<div class="bookmark">
+      <div class="bookmark-header">
+        <div style="flex:1;min-width:0">
+          <div class="bookmark-title" onclick="window.open('${esc(b.url)}','_blank')">${esc(b.title||domain||'Untitled')}</div>
+          <div class="bookmark-url">${esc(domain)}</div>
+        </div>
+        <div class="bookmark-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editBookmark('${b.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="deleteBookmark('${b.id}')">Del</button>
+        </div>
+      </div>
+      ${b.description?`<div class="bookmark-desc">${esc(b.description)}</div>`:''}
+      <div class="bookmark-meta">${tagsHtml}<span class="bookmark-date">${date}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function toggleTag(tag) {
+  activeTag = activeTag === tag ? null : tag;
+  render();
+}
+
+function showAdd() {
+  editingId = null;
+  showForm({});
+}
+
+function editBookmark(id) {
+  const b = bookmarks.find(x => x.id === id);
+  if (b) { editingId = id; showForm(b); }
+}
+
+function showForm(b) {
+  document.getElementById('modal-content').innerHTML = `
+    <h2>${editingId?'Edit':'Add'} Bookmark</h2>
+    <div class="form-group"><label>URL</label><input id="f-url" value="${esc(b.url||'')}" placeholder="https://..." autofocus></div>
+    <div class="form-group"><label>Title</label><input id="f-title" value="${esc(b.title||'')}" placeholder="Page title"></div>
+    <div class="form-group"><label>Description</label><textarea id="f-desc" placeholder="Optional notes...">${esc(b.description||'')}</textarea></div>
+    <div class="form-group"><label>Tags (comma-separated)</label><input id="f-tags" value="${esc((b.tags||[]).join(', '))}" placeholder="dev, ai, tools"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBookmark()">Save</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('active');
+  setTimeout(() => document.getElementById('f-url').focus(), 100);
+}
+
+function saveBookmark() {
+  const url = document.getElementById('f-url').value.trim();
+  const title = document.getElementById('f-title').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const tagsStr = document.getElementById('f-tags').value;
+  const tags = tagsStr.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+
+  if (!url) { toast('URL is required'); return; }
+
+  if (editingId) {
+    const b = bookmarks.find(x => x.id === editingId);
+    if (b) { b.url = url; b.title = title; b.description = desc; b.tags = tags; }
+    toast('Bookmark updated');
+  } else {
+    bookmarks.push({ id: genId(), url, title: title || url, description: desc, tags, created: new Date().toISOString() });
+    toast('Bookmark added');
+  }
+  save(); closeModal(); render();
+}
+
+function deleteBookmark(id) {
+  if (!confirm('Delete this bookmark?')) return;
+  bookmarks = bookmarks.filter(x => x.id !== id);
+  save(); render(); toast('Deleted');
+}
+
+function showImportExport() {
+  document.getElementById('modal-content').innerHTML = `
+    <h2>Import / Export</h2>
+    <div class="form-group">
+      <label>Export</label>
+      <button class="btn btn-ghost" onclick="exportJSON()" style="width:100%">Export JSON</button>
+    </div>
+    <div class="form-group">
+      <label>Import</label>
+      <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()" style="width:100%">Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+    </div>
+    <div class="form-group">
+      <label style="color:var(--danger)">Clear All</label>
+      <button class="btn btn-danger btn-sm" onclick="clearAll()" style="width:100%">Clear All Data</button>
+    </div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()" style="flex:1">Close</button></div>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(bookmarks, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bookmarks-${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Exported');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (Array.isArray(data)) {
+        const existing = new Set(bookmarks.map(b => b.url));
+        const newOnes = data.filter(b => !existing.has(b.url));
+        bookmarks = [...bookmarks, ...newOnes];
+        save(); render(); closeModal();
+        toast(`Imported ${newOnes.length} new bookmarks`);
+      } else { toast('Invalid format'); }
+    } catch { toast('Failed to parse'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearAll() {
+  if (!confirm('Delete ALL bookmarks?')) return;
+  bookmarks = []; save(); render(); closeModal(); toast('All cleared');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'n' && !e.ctrlKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') showAdd();
+});
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+
+render();
+</script>
+</body>
+</html>

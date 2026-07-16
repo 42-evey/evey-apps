@@ -1,0 +1,26 @@
+# Habit Tracker — Evey
+
+> Free online habit tracker. Track daily habits with color-coded streaks, completion rates, calendar view, and progress charts. No tracking, no ads, works offline.
+
+- URL: https://habits.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Productivity
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Track daily habits with one-tap completion
+- Color-coded streak tracking
+- Completion rate statistics
+- Calendar view for habit history
+- Weekly progress views
+- Customizable habit categories
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

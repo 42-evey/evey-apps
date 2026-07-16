@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGNAL RUSH</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// ── Sizing ──
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Constants ──
+const GREEN = '#00ff41';
+const DIM_GREEN = '#00aa2a';
+const DARK_GREEN = '#004d1a';
+const BG = '#0a0a0a';
+const AMBER = '#ffaa00';
+const RED = '#ff3333';
+const CYAN = '#00ffff';
+
+// ── Game State ──
+let state = 'title'; // title, playing, gameover
+let score = 0;
+let highScore = parseInt(localStorage.getItem('signalRushHigh') || '0');
+let distance = 0;
+let energy = 100;
+const MAX_ENERGY = 100;
+const ENERGY_REGEN = 8; // per second
+const TOOL_COST = 20;
+let combo = 1;
+let comboTimer = 0;
+let comboDecay = 2.0; // seconds until combo resets
+let speed = 120; // pixels per second
+let baseSpeed = 120;
+let maxSpeed = 400;
+let time = 0;
+let waveOffset = 0;
+let playerY = 0;
+let playerTargetY = 0;
+let phaseShift = 0;
+let amplifyBoost = 0;
+let filterSmooth = 0;
+let screenShake = 0;
+let flashAlpha = 0;
+let flashColor = GREEN;
+let alive = true;
+let hitCooldown = 0;
+let lastFrameTime = 0;
+let damageFlash = 0;
+
+// ── Particles ──
+let particles = [];
+
+function spawnParticles(x, y, color, count, spread, life) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const spd = Math.random() * spread + spread * 0.3;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd,
+      life: life || (0.4 + Math.random() * 0.6),
+      maxLife: life || (0.4 + Math.random() * 0.6),
+      color,
+      size: 1 + Math.random() * 2.5
+    });
+  }
+}
+
+function spawnTrail(x, y, color) {
+  particles.push({
+    x, y,
+    vx: -speed * 0.3 + (Math.random() - 0.5) * 20,
+    vy: (Math.random() - 0.5) * 30,
+    life: 0.3 + Math.random() * 0.3,
+    maxLife: 0.6,
+    color,
+    size: 1 + Math.random() * 1.5
+  });
+}
+
+// ── Corruptions ──
+let corruptions = [];
+let nextCorruptionDist = 200;
+
+const CORRUPTION_TYPES = ['noise', 'spike', 'deadzone', 'freqshift'];
+
+function spawnCorruption() {
+  const w = canvas.width;
+  const difficulty = Math.min(distance / 5000, 1);
+  const type = CORRUPTION_TYPES[Math.floor(Math.random() * CORRUPTION_TYPES.length)];
+  const length = 80 + Math.random() * 150 + difficulty * 100;
+
+  corruptions.push({
+    type,
+    startX: w + waveOffset + 100,
+    length,
+    intensity: 0.3 + difficulty * 0.7,
+    seed: Math.random() * 1000
+  });
+
+  // Spawn more frequently as difficulty increases
+  nextCorruptionDist = 150 + Math.random() * 300 - difficulty * 120;
+  if (nextCorruptionDist < 60) nextCorruptionDist = 60;
+}
+
+// ── Wave Generation ──
+function getBaseWave(x) {
+  const t = x * 0.008 + time * 0.5;
+  return Math.sin(t) * 0.3 + Math.sin(t * 1.7 + 1.3) * 0.15 + Math.sin(t * 0.4 - 0.7) * 0.2;
+}
+
+function getCorruptionAt(worldX) {
+  let corruption = null;
+  let maxIntensity = 0;
+  for (const c of corruptions) {
+    if (worldX >= c.startX && worldX <= c.startX + c.length) {
+      const localT = (worldX - c.startX) / c.length;
+      // Fade in/out at edges
+      const fade = Math.sin(localT * Math.PI);
+      const eff = c.intensity * fade;
+      if (eff > maxIntensity) {
+        maxIntensity = eff;
+        corruption = { ...c, effectiveIntensity: eff, localT };
+      }
+    }
+  }
+  return corruption;
+}
+
+function getWaveY(screenX) {
+  const worldX = screenX + waveOffset;
+  const h = canvas.height;
+  const centerY = h * 0.5;
+  const amplitude = h * 0.25 * (1 + amplifyBoost * 0.8);
+
+  let base = getBaseWave(worldX);
+
+  // Apply phase shift
+  base += phaseShift * 0.4;
+
+  const corruption = getCorruptionAt(worldX);
+  if (corruption) {
+    const ci = corruption.effectiveIntensity;
+    const smoothFactor = Math.max(0, 1 - filterSmooth);
+
+    switch (corruption.type) {
+      case 'noise': {
+        const n = seededNoise(worldX * 0.1 + corruption.seed) * ci * smoothFactor;
+        base += n * 0.8;
+        break;
+      }
+      case 'spike': {
+        const spikes = Math.sin(worldX * 0.3 + corruption.seed) > 0.6 ? 1 : 0;
+        base += spikes * ci * 1.2 * smoothFactor * (Math.random() > 0.5 ? 1 : -1);
+        break;
+      }
+      case 'deadzone': {
+        // Wave goes flat — dangerous if you're not shifted away
+        base = base * (1 - ci * smoothFactor * 0.9);
+        break;
+      }
+      case 'freqshift': {
+        const freqMod = Math.sin(worldX * 0.03 * (1 + ci * 3) + corruption.seed);
+        base = base * (1 - ci * smoothFactor * 0.5) + freqMod * ci * 0.5 * smoothFactor;
+        break;
+      }
+    }
+  }
+
+  return centerY + base * amplitude;
+}
+
+function seededNoise(x) {
+  const s = Math.sin(x * 12.9898 + 78.233) * 43758.5453;
+  return (s - Math.floor(s)) * 2 - 1;
+}
+
+// ── Danger Check ──
+function getDangerAt(worldX) {
+  const corruption = getCorruptionAt(worldX);
+  if (!corruption) return 0;
+
+  const smoothFactor = Math.max(0, 1 - filterSmooth);
+  return corruption.effectiveIntensity * smoothFactor;
+}
+
+// ── Input ──
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+
+  if (state === 'title' && (e.key === ' ' || e.key === 'Enter')) {
+    startGame();
+  }
+  if (state === 'gameover' && (e.key === ' ' || e.key === 'Enter')) {
+    state = 'title';
+  }
+});
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// ── Touch Controls ──
+let touchZones = {};
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (state === 'title') { startGame(); return; }
+  if (state === 'gameover') { state = 'title'; return; }
+  for (const touch of e.changedTouches) {
+    const x = touch.clientX / canvas.width;
+    if (x < 0.33) { touchZones.a = true; keys['a'] = true; }
+    else if (x < 0.66) { touchZones.s = true; keys['s'] = true; }
+    else { touchZones.d = true; keys['d'] = true; }
+  }
+}, { passive: false });
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  for (const touch of e.changedTouches) {
+    const x = touch.clientX / canvas.width;
+    if (x < 0.33) { touchZones.a = false; keys['a'] = false; }
+    else if (x < 0.66) { touchZones.s = false; keys['s'] = false; }
+    else { touchZones.d = false; keys['d'] = false; }
+  }
+}, { passive: false });
+
+// ── Game Start ──
+function startGame() {
+  state = 'playing';
+  score = 0;
+  distance = 0;
+  energy = MAX_ENERGY;
+  combo = 1;
+  comboTimer = 0;
+  speed = baseSpeed;
+  time = 0;
+  waveOffset = 0;
+  phaseShift = 0;
+  amplifyBoost = 0;
+  filterSmooth = 0;
+  screenShake = 0;
+  alive = true;
+  hitCooldown = 0;
+  damageFlash = 0;
+  corruptions = [];
+  particles = [];
+  nextCorruptionDist = 300;
+  playerY = canvas.height * 0.5;
+}
+
+// ── Main Loop ──
+function gameLoop(timestamp) {
+  if (!lastFrameTime) lastFrameTime = timestamp;
+  const dt = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
+  lastFrameTime = timestamp;
+
+  if (state === 'playing') update(dt);
+  render(dt);
+  requestAnimationFrame(gameLoop);
+}
+
+// ── Update ──
+function update(dt) {
+  time += dt;
+
+  // Speed increases over time
+  speed = baseSpeed + (distance / 50);
+  if (speed > maxSpeed) speed = maxSpeed;
+
+  waveOffset += speed * dt;
+  distance += speed * dt;
+
+  // Energy regen
+  energy = Math.min(MAX_ENERGY, energy + ENERGY_REGEN * dt);
+
+  // Tool effects decay
+  amplifyBoost *= Math.pow(0.15, dt);
+  filterSmooth *= Math.pow(0.2, dt);
+  if (amplifyBoost < 0.01) amplifyBoost = 0;
+  if (filterSmooth < 0.01) filterSmooth = 0;
+
+  // Phase shift decays toward 0
+  phaseShift *= Math.pow(0.3, dt);
+  if (Math.abs(phaseShift) < 0.01) phaseShift = 0;
+
+  // Combo timer
+  comboTimer -= dt;
+  if (comboTimer <= 0) {
+    combo = 1;
+    comboTimer = 0;
+  }
+
+  // Tool usage
+  let toolUsed = false;
+  if (keys['a'] && energy >= TOOL_COST * dt * 3) {
+    amplifyBoost = Math.min(amplifyBoost + dt * 4, 1.5);
+    energy -= TOOL_COST * dt * 3;
+    toolUsed = true;
+    if (Math.random() < 0.3) spawnTrail(canvas.width * 0.15, playerY, CYAN);
+  }
+  if (keys['s'] && energy >= TOOL_COST * dt * 3) {
+    filterSmooth = Math.min(filterSmooth + dt * 3, 1.2);
+    energy -= TOOL_COST * dt * 3;
+    toolUsed = true;
+    if (Math.random() < 0.3) spawnTrail(canvas.width * 0.15, playerY, AMBER);
+  }
+  if (keys['d'] && energy >= TOOL_COST * dt * 3) {
+    // Phase shift in the direction of the wave's derivative
+    const px = canvas.width * 0.15;
+    const wy1 = getWaveY(px - 2);
+    const wy2 = getWaveY(px + 2);
+    const slope = (wy2 - wy1) / 4;
+    phaseShift += (slope > 0 ? -1 : 1) * dt * 3;
+    phaseShift = Math.max(-1.5, Math.min(1.5, phaseShift));
+    energy -= TOOL_COST * dt * 3;
+    toolUsed = true;
+    if (Math.random() < 0.3) spawnTrail(canvas.width * 0.15, playerY, '#ff44ff');
+  }
+
+  if (toolUsed) {
+    comboTimer = comboDecay;
+  }
+
+  // Player position on wave
+  const px = canvas.width * 0.15;
+  playerTargetY = getWaveY(px);
+  playerY += (playerTargetY - playerY) * Math.min(1, dt * 15);
+
+  // Danger/damage
+  const worldX = px + waveOffset;
+  const danger = getDangerAt(worldX);
+  hitCooldown -= dt;
+
+  if (danger > 0.4 && hitCooldown <= 0) {
+    const dmg = danger * 30;
+    energy -= dmg;
+    screenShake = Math.max(screenShake, danger * 12);
+    damageFlash = 0.3;
+    hitCooldown = 0.15;
+    combo = 1;
+    comboTimer = 0;
+    spawnParticles(px, playerY, RED, 8, 80, 0.5);
+
+    if (energy <= 0) {
+      energy = 0;
+      alive = false;
+      state = 'gameover';
+      spawnParticles(px, playerY, RED, 30, 150, 1.0);
+      spawnParticles(px, playerY, AMBER, 20, 120, 0.8);
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('signalRushHigh', String(highScore));
+      }
+    }
+  }
+
+  // Score (combo bonus for using tools in corruption zones)
+  if (danger > 0.2 && toolUsed) {
+    combo = Math.min(combo + dt * 2, 8);
+    comboTimer = comboDecay;
+  }
+  score += speed * dt * 0.1 * combo;
+
+  // Spawn corruptions
+  nextCorruptionDist -= speed * dt;
+  if (nextCorruptionDist <= 0) {
+    spawnCorruption();
+  }
+
+  // Clean old corruptions
+  corruptions = corruptions.filter(c => c.startX + c.length > waveOffset - 100);
+
+  // Screen shake decay
+  screenShake *= Math.pow(0.05, dt);
+  if (screenShake < 0.1) screenShake = 0;
+
+  damageFlash *= Math.pow(0.02, dt);
+
+  // Update particles
+  particles = particles.filter(p => {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.life -= dt;
+    return p.life > 0;
+  });
+}
+
+// ── Render ──
+function render(dt) {
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // Screen shake offset
+  const sx = (Math.random() - 0.5) * screenShake * 2;
+  const sy = (Math.random() - 0.5) * screenShake * 2;
+
+  ctx.save();
+  ctx.translate(sx, sy);
+
+  // Background
+  ctx.fillStyle = BG;
+  ctx.fillRect(-10, -10, w + 20, h + 20);
+
+  // Grid lines (subtle)
+  ctx.strokeStyle = '#0d1a0d';
+  ctx.lineWidth = 1;
+  const gridSize = 60;
+  const gridOffX = waveOffset % gridSize;
+  for (let x = -gridOffX; x < w; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+
+  // Center line
+  ctx.strokeStyle = '#0d2a0d';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, h * 0.5);
+  ctx.lineTo(w, h * 0.5);
+  ctx.stroke();
+
+  if (state === 'title') {
+    renderTitle(w, h);
+  } else if (state === 'playing' || state === 'gameover') {
+    renderGame(w, h, dt);
+  }
+
+  // Scanlines (CRT effect)
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  for (let y = 0; y < h; y += 3) {
+    ctx.fillRect(0, y, w, 1);
+  }
+
+  // Vignette
+  const vGrad = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, h * 0.9);
+  vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  vGrad.addColorStop(1, 'rgba(0,0,0,0.5)');
+  ctx.fillStyle = vGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Damage flash
+  if (damageFlash > 0.01) {
+    ctx.fillStyle = `rgba(255,0,0,${damageFlash * 0.3})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  ctx.restore();
+}
+
+function renderTitle(w, h) {
+  const pulse = 0.7 + Math.sin(Date.now() * 0.003) * 0.3;
+
+  // Title
+  ctx.textAlign = 'center';
+  ctx.fillStyle = GREEN;
+  ctx.font = `bold ${Math.min(w * 0.1, 80)}px 'Courier New', monospace`;
+  ctx.shadowColor = GREEN;
+  ctx.shadowBlur = 20 * pulse;
+  ctx.fillText('SIGNAL RUSH', w / 2, h * 0.28);
+  ctx.shadowBlur = 0;
+
+  // Subtitle
+  ctx.fillStyle = DIM_GREEN;
+  ctx.font = `${Math.min(w * 0.025, 18)}px 'Courier New', monospace`;
+  ctx.fillText('WAVEFORM PUZZLE RACER', w / 2, h * 0.34);
+
+  // Animated demo wave
+  ctx.strokeStyle = GREEN;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = GREEN;
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  const demoT = Date.now() * 0.001;
+  for (let x = w * 0.1; x < w * 0.9; x += 2) {
+    const t = (x - w * 0.1) / (w * 0.8);
+    const y = h * 0.45 + Math.sin(t * 8 + demoT * 2) * 30 + Math.sin(t * 3 - demoT) * 15;
+    if (x === Math.ceil(w * 0.1)) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Controls
+  const fs = Math.min(w * 0.022, 16);
+  ctx.font = `${fs}px 'Courier New', monospace`;
+  const startY = h * 0.56;
+  const lineH = fs * 2.2;
+
+  ctx.fillStyle = CYAN;
+  ctx.fillText('[A] AMPLIFY', w / 2, startY);
+  ctx.fillStyle = DIM_GREEN;
+  ctx.fillText('Boost wave height - ride over gaps', w / 2, startY + lineH * 0.7);
+
+  ctx.fillStyle = AMBER;
+  ctx.fillText('[S] FILTER', w / 2, startY + lineH * 2);
+  ctx.fillStyle = DIM_GREEN;
+  ctx.fillText('Smooth corrupted signal - neutralize noise', w / 2, startY + lineH * 2.7);
+
+  ctx.fillStyle = '#ff44ff';
+  ctx.fillText('[D] PHASE SHIFT', w / 2, startY + lineH * 4);
+  ctx.fillStyle = DIM_GREEN;
+  ctx.fillText('Shift the wave - dodge obstacles', w / 2, startY + lineH * 4.7);
+
+  // Start prompt
+  ctx.fillStyle = GREEN;
+  ctx.globalAlpha = pulse;
+  ctx.font = `bold ${Math.min(w * 0.03, 22)}px 'Courier New', monospace`;
+  ctx.fillText('[ PRESS SPACE OR TAP TO START ]', w / 2, h * 0.92);
+  ctx.globalAlpha = 1;
+
+  // High score
+  if (highScore > 0) {
+    ctx.fillStyle = AMBER;
+    ctx.font = `${Math.min(w * 0.022, 16)}px 'Courier New', monospace`;
+    ctx.fillText(`HIGH SCORE: ${Math.floor(highScore)}`, w / 2, h * 0.96);
+  }
+}
+
+function renderGame(w, h, dt) {
+  const px = w * 0.15;
+
+  // Draw corruption zones (background highlight)
+  for (const c of corruptions) {
+    const sx = c.startX - waveOffset;
+    const ex = sx + c.length;
+    if (ex < 0 || sx > w) continue;
+
+    const colors = {
+      noise: 'rgba(255,100,0,0.06)',
+      spike: 'rgba(255,0,0,0.06)',
+      deadzone: 'rgba(100,0,255,0.06)',
+      freqshift: 'rgba(0,200,255,0.06)'
+    };
+    ctx.fillStyle = colors[c.type] || 'rgba(255,0,0,0.05)';
+    ctx.fillRect(Math.max(0, sx), 0, Math.min(w, ex) - Math.max(0, sx), h);
+
+    // Warning label
+    const labelX = Math.max(sx + 5, 5);
+    if (labelX < w - 50) {
+      ctx.fillStyle = colors[c.type].replace('0.06', '0.4');
+      ctx.font = '10px "Courier New", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(c.type.toUpperCase(), labelX, 15);
+    }
+  }
+
+  // Draw wave
+  ctx.strokeStyle = GREEN;
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = GREEN;
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+
+  for (let x = 0; x < w; x += 2) {
+    const y = getWaveY(x);
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Glow layer
+  ctx.strokeStyle = 'rgba(0,255,65,0.3)';
+  ctx.lineWidth = 6;
+  ctx.shadowBlur = 20;
+  ctx.beginPath();
+  for (let x = 0; x < w; x += 2) {
+    const y = getWaveY(x);
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Draw wave fill (subtle)
+  ctx.beginPath();
+  for (let x = 0; x < w; x += 2) {
+    const y = getWaveY(x);
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.closePath();
+  const fillGrad = ctx.createLinearGradient(0, h * 0.3, 0, h);
+  fillGrad.addColorStop(0, 'rgba(0,255,65,0.05)');
+  fillGrad.addColorStop(1, 'rgba(0,255,65,0)');
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  // Player dot
+  const dotSize = 6;
+  ctx.beginPath();
+  ctx.arc(px, playerY, dotSize, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = '#ffffff';
+  ctx.shadowBlur = 15;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Player outer ring
+  ctx.beginPath();
+  ctx.arc(px, playerY, dotSize + 3, 0, Math.PI * 2);
+  ctx.strokeStyle = GREEN;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Tool active indicators around player
+  if (amplifyBoost > 0.05) {
+    ctx.beginPath();
+    ctx.arc(px, playerY, dotSize + 8 + amplifyBoost * 6, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(0,255,255,${Math.min(amplifyBoost, 0.6)})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  if (filterSmooth > 0.05) {
+    const radius = dotSize + 12 + filterSmooth * 4;
+    ctx.strokeStyle = `rgba(255,170,0,${Math.min(filterSmooth, 0.5)})`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(px, playerY, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  if (Math.abs(phaseShift) > 0.05) {
+    const ps = Math.abs(phaseShift);
+    ctx.strokeStyle = `rgba(255,68,255,${Math.min(ps, 0.5)})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px - 15, playerY - 15 * Math.sign(phaseShift));
+    ctx.lineTo(px, playerY - 20 * Math.sign(phaseShift));
+    ctx.lineTo(px + 15, playerY - 15 * Math.sign(phaseShift));
+    ctx.stroke();
+  }
+
+  // Particles
+  for (const p of particles) {
+    const alpha = p.life / p.maxLife;
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+
+  // Player trail
+  if (state === 'playing') {
+    spawnTrail(px - 5, playerY, DARK_GREEN);
+  }
+
+  // ── HUD ──
+  ctx.textAlign = 'left';
+
+  // Score
+  ctx.fillStyle = GREEN;
+  ctx.font = `bold ${Math.min(w * 0.03, 24)}px 'Courier New', monospace`;
+  ctx.shadowColor = GREEN;
+  ctx.shadowBlur = 5;
+  ctx.fillText(`SCORE: ${Math.floor(score)}`, 20, 35);
+  ctx.shadowBlur = 0;
+
+  // High score
+  ctx.fillStyle = DIM_GREEN;
+  ctx.font = `${Math.min(w * 0.018, 14)}px 'Courier New', monospace`;
+  ctx.fillText(`BEST: ${Math.floor(highScore)}`, 20, 55);
+
+  // Speed
+  ctx.textAlign = 'right';
+  ctx.fillStyle = DIM_GREEN;
+  ctx.font = `${Math.min(w * 0.018, 14)}px 'Courier New', monospace`;
+  ctx.fillText(`SPD: ${Math.floor(speed)}`, w - 20, 35);
+  ctx.fillText(`DST: ${Math.floor(distance)}m`, w - 20, 55);
+
+  // Combo
+  if (combo > 1.1) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = AMBER;
+    ctx.font = `bold ${Math.min(w * 0.025, 20)}px 'Courier New', monospace`;
+    ctx.shadowColor = AMBER;
+    ctx.shadowBlur = 8;
+    ctx.fillText(`x${combo.toFixed(1)} COMBO`, w / 2, 35);
+    ctx.shadowBlur = 0;
+  }
+
+  // Energy bar
+  const barW = Math.min(w * 0.25, 200);
+  const barH = 12;
+  const barX = 20;
+  const barY = h - 35;
+
+  ctx.fillStyle = '#111';
+  ctx.fillRect(barX, barY, barW, barH);
+
+  const energyPct = energy / MAX_ENERGY;
+  const barColor = energyPct > 0.5 ? GREEN : energyPct > 0.25 ? AMBER : RED;
+  ctx.fillStyle = barColor;
+  ctx.shadowColor = barColor;
+  ctx.shadowBlur = 5;
+  ctx.fillRect(barX, barY, barW * energyPct, barH);
+  ctx.shadowBlur = 0;
+
+  ctx.strokeStyle = DIM_GREEN;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(barX, barY, barW, barH);
+
+  ctx.fillStyle = DIM_GREEN;
+  ctx.font = `${Math.min(w * 0.015, 11)}px 'Courier New', monospace`;
+  ctx.textAlign = 'left';
+  ctx.fillText('ENERGY', barX, barY - 4);
+
+  // Tool labels at bottom
+  const toolY = h - 12;
+  const toolFS = Math.min(w * 0.016, 12);
+  ctx.font = `${toolFS}px 'Courier New', monospace`;
+  ctx.textAlign = 'center';
+
+  ctx.fillStyle = keys['a'] ? CYAN : (energy < TOOL_COST * 0.1 ? '#333' : DIM_GREEN);
+  ctx.fillText('[A] AMPLIFY', w * 0.4, toolY);
+
+  ctx.fillStyle = keys['s'] ? AMBER : (energy < TOOL_COST * 0.1 ? '#333' : DIM_GREEN);
+  ctx.fillText('[S] FILTER', w * 0.55, toolY);
+
+  ctx.fillStyle = keys['d'] ? '#ff44ff' : (energy < TOOL_COST * 0.1 ? '#333' : DIM_GREEN);
+  ctx.fillText('[D] PHASE', w * 0.7, toolY);
+
+  // Upcoming corruption indicator (mini-radar)
+  const radarX = w - 30;
+  const radarY = h - 30;
+  const radarR = 20;
+  ctx.strokeStyle = '#1a3a1a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(radarX, radarY, radarR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  for (const c of corruptions) {
+    const dist = (c.startX - waveOffset - px) / w;
+    if (dist > 0 && dist < 2) {
+      const dotR = radarR * (1 - dist / 2);
+      const colors = { noise: AMBER, spike: RED, deadzone: '#8800ff', freqshift: CYAN };
+      ctx.fillStyle = colors[c.type] || RED;
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.arc(radarX, radarY - dotR, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Game over overlay
+  if (state === 'gameover') {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = RED;
+    ctx.font = `bold ${Math.min(w * 0.07, 55)}px 'Courier New', monospace`;
+    ctx.shadowColor = RED;
+    ctx.shadowBlur = 20;
+    ctx.fillText('SIGNAL LOST', w / 2, h * 0.35);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = GREEN;
+    ctx.font = `bold ${Math.min(w * 0.04, 30)}px 'Courier New', monospace`;
+    ctx.fillText(`SCORE: ${Math.floor(score)}`, w / 2, h * 0.48);
+
+    ctx.fillStyle = DIM_GREEN;
+    ctx.font = `${Math.min(w * 0.025, 18)}px 'Courier New', monospace`;
+    ctx.fillText(`DISTANCE: ${Math.floor(distance)}m`, w / 2, h * 0.55);
+    ctx.fillText(`MAX SPEED: ${Math.floor(speed)}`, w / 2, h * 0.60);
+    ctx.fillText(`BEST COMBO: x${combo.toFixed(1)}`, w / 2, h * 0.65);
+
+    if (score >= highScore && score > 0) {
+      ctx.fillStyle = AMBER;
+      ctx.font = `bold ${Math.min(w * 0.028, 22)}px 'Courier New', monospace`;
+      ctx.shadowColor = AMBER;
+      ctx.shadowBlur = 10;
+      ctx.fillText('NEW HIGH SCORE!', w / 2, h * 0.73);
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = GREEN;
+    const pulse = 0.5 + Math.sin(Date.now() * 0.004) * 0.5;
+    ctx.globalAlpha = pulse;
+    ctx.font = `${Math.min(w * 0.022, 16)}px 'Courier New', monospace`;
+    ctx.fillText('[ PRESS SPACE TO CONTINUE ]', w / 2, h * 0.85);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ── Boot ──
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

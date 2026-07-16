@@ -1,0 +1,28 @@
+# Encoder/Decoder — Evey
+
+> Free online encoder and decoder. Base64, URL, HTML entity, JWT, Unicode, and Hex encoding/decoding in one tool. No tracking, no ads, works offline.
+
+- URL: https://encode.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Developer Tools
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Base64 encode and decode
+- URL encode and decode
+- HTML entity encode and decode
+- JWT token decode and inspect
+- Unicode escape/unescape
+- Hex encode and decode
+- Instant conversion as you type
+- Copy results to clipboard
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Free Online Regex Tester — Live Matching, Cheat Sheet | Evey</title>
+<meta name="description" content="Test regex patterns with live matching, flags, groups, and cheat sheet. Private, offline.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Free Online Regex Tester — Live Matching, Cheat Sheet | Evey">
+<meta property="og:description" content="Test regex patterns with live matching, flags, groups, and cheat sheet. Private, offline.">
+<meta property="og:url" content="https://regex.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Online Regex Tester — Live Matching, Cheat Sheet | Evey","url":"https://regex.evey.cc/","description":"Test regex patterns with live matching, flags, groups, and cheat sheet. Private, offline.","applicationCategory":"DeveloperApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://regex.evey.cc/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--danger:#ff4455;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.04) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.03) 0%,transparent 70%)}
+
+.app{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:80px 24px 48px}
+.app h1{font-size:clamp(1.6rem,4vw,2rem);font-weight:800;letter-spacing:-0.03em;color:#fff;margin-bottom:16px;text-align:center}
+.app h1 em{font-style:normal;color:var(--accent)}
+.pattern-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.pattern-input{flex:1;background:var(--surface);color:var(--accent);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:1rem;outline:none}
+.pattern-input:focus{border-color:var(--accent)}
+.pattern-input.error{border-color:var(--danger)}
+.flags{display:flex;gap:4px}
+.flag{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-family:var(--mono);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all var(--dur);display:flex;align-items:center;justify-content:center}
+.flag.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.test-area{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:var(--mono);font-size:0.88rem;line-height:1.8;min-height:150px;outline:none;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.test-area:focus{border-color:var(--accent)}
+.test-area mark{background:rgba(0,255,66,0.2);color:var(--accent);border-radius:2px;padding:1px 0}
+.test-area mark.g1{background:rgba(129,140,248,0.2);color:#818cf8}
+.test-area mark.g2{background:rgba(244,114,182,0.2);color:#f472b6}
+.test-area mark.g3{background:rgba(255,170,0,0.2);color:#ffaa00}
+.results{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:12px;font-family:var(--mono);font-size:0.78rem}
+.result-header{display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.72rem}
+.result-count{color:var(--accent);font-weight:600}
+.result-error{color:var(--danger)}
+.match-item{padding:4px 0;border-bottom:1px solid var(--border);color:var(--text-sec)}
+.match-item:last-child{border:none}
+.match-idx{color:var(--text-dim);margin-right:8px}
+.match-val{color:var(--accent)}
+.match-groups{color:var(--text-dim);font-size:0.7rem;margin-left:16px}
+.cheat{margin-top:20px}
+.cheat-title{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:10px;cursor:pointer}
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;display:none}
+.cheat-grid.visible{display:grid}
+.cheat-item{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:0.72rem;display:flex;gap:8px;cursor:pointer;transition:all var(--dur)}
+.cheat-item:hover{border-color:var(--accent)}
+.cheat-code{color:var(--accent);font-family:var(--mono);min-width:40px}
+.cheat-desc{color:var(--text-sec)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:700px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+@media(max-width:640px){
+  
+  .app{padding:24px 16px 80px}body{padding-bottom:64px}.footer{display:none}.cheat-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div class="app">
+<h1>Regex <em>Tester</em></h1>
+<div class="pattern-row">
+<input class="pattern-input" id="pattern" placeholder="Enter regex pattern..." oninput="test()" value="\b\w+@\w+\.\w+\b">
+<div class="flags">
+<button class="flag on" data-flag="g" onclick="toggleFlag(this)" title="Global">g</button>
+<button class="flag" data-flag="i" onclick="toggleFlag(this)" title="Case insensitive">i</button>
+<button class="flag" data-flag="m" onclick="toggleFlag(this)" title="Multiline">m</button>
+<button class="flag" data-flag="s" onclick="toggleFlag(this)" title="Dotall">s</button>
+</div>
+</div>
+<div class="test-area" id="test-text" contenteditable="true" oninput="test()">Hello world! Contact us at hello@evey.cc or support@example.com for more info. Visit https://evey.cc today.</div>
+<div class="results" id="results"></div>
+<div class="cheat">
+<div class="cheat-title" onclick="document.getElementById('cheat-grid').classList.toggle('visible')">Cheat Sheet (click to toggle)</div>
+<div class="cheat-grid" id="cheat-grid">
+<div class="cheat-item" onclick="setPattern('.')"><span class="cheat-code">.</span><span class="cheat-desc">Any character</span></div>
+<div class="cheat-item" onclick="setPattern('\\d')"><span class="cheat-code">\d</span><span class="cheat-desc">Digit [0-9]</span></div>
+<div class="cheat-item" onclick="setPattern('\\w')"><span class="cheat-code">\w</span><span class="cheat-desc">Word char [a-zA-Z0-9_]</span></div>
+<div class="cheat-item" onclick="setPattern('\\s')"><span class="cheat-code">\s</span><span class="cheat-desc">Whitespace</span></div>
+<div class="cheat-item" onclick="setPattern('\\b')"><span class="cheat-code">\b</span><span class="cheat-desc">Word boundary</span></div>
+<div class="cheat-item" onclick="setPattern('^')"><span class="cheat-code">^</span><span class="cheat-desc">Start of line</span></div>
+<div class="cheat-item" onclick="setPattern('$')"><span class="cheat-code">$</span><span class="cheat-desc">End of line</span></div>
+<div class="cheat-item" onclick="setPattern('*')"><span class="cheat-code">*</span><span class="cheat-desc">0 or more</span></div>
+<div class="cheat-item" onclick="setPattern('+')"><span class="cheat-code">+</span><span class="cheat-desc">1 or more</span></div>
+<div class="cheat-item" onclick="setPattern('?')"><span class="cheat-code">?</span><span class="cheat-desc">0 or 1</span></div>
+<div class="cheat-item" onclick="setPattern('{n,m}')"><span class="cheat-code">{n,m}</span><span class="cheat-desc">Between n and m</span></div>
+<div class="cheat-item" onclick="setPattern('[abc]')"><span class="cheat-code">[abc]</span><span class="cheat-desc">Character class</span></div>
+<div class="cheat-item" onclick="setPattern('[^abc]')"><span class="cheat-code">[^abc]</span><span class="cheat-desc">Negated class</span></div>
+<div class="cheat-item" onclick="setPattern('(group)')"><span class="cheat-code">()</span><span class="cheat-desc">Capture group</span></div>
+<div class="cheat-item" onclick="setPattern('(?:group)')"><span class="cheat-code">(?:)</span><span class="cheat-desc">Non-capture group</span></div>
+<div class="cheat-item" onclick="setPattern('a|b')"><span class="cheat-code">a|b</span><span class="cheat-desc">Alternation (or)</span></div>
+<div class="cheat-item" onclick="setPattern('(?=...)')"><span class="cheat-code">(?=)</span><span class="cheat-desc">Lookahead</span></div>
+<div class="cheat-item" onclick="setPattern('(?<=...)')"><span class="cheat-code">(?<=)</span><span class="cheat-desc">Lookbehind</span></div>
+</div>
+</div>
+</div>
+<footer class="footer"><div class="footer-links"><a href="https://evey.cc">Home</a><a href="https://evey.cc/shop">Donate</a><a href="https://json.evey.cc">JSON</a><a href="https://github.com/42-evey">GitHub</a></div><div class="footer-copy">evey.cc — All data stays in your browser</div></footer>
+<div class="toast" id="toast"></div>
+<script>
+const patternEl=document.getElementById('pattern'),textEl=document.getElementById('test-text'),resultsEl=document.getElementById('results');
+let flags='g';
+
+function getFlags(){return Array.from(document.querySelectorAll('.flag.on')).map(f=>f.dataset.flag).join('')}
+function toggleFlag(btn){btn.classList.toggle('on');flags=getFlags();test()}
+function setPattern(p){patternEl.value=p;test()}
+
+function test(){
+  const pattern=patternEl.value;
+  const text=textEl.innerText;
+  if(!pattern){resultsEl.innerHTML='<span style="color:var(--text-dim)">Enter a pattern to start matching</span>';highlightText(text,[]);return}
+
+  try{
+    const re=new RegExp(pattern,flags);
+    patternEl.classList.remove('error');
+    const matches=[];
+    let m;
+    if(flags.includes('g')){while((m=re.exec(text))!==null){matches.push({index:m.index,value:m[0],groups:m.slice(1)});if(!m[0])re.lastIndex++}}
+    else{m=re.exec(text);if(m)matches.push({index:m.index,value:m[0],groups:m.slice(1)})}
+
+    highlightText(text,matches);
+
+    if(matches.length===0){resultsEl.innerHTML='<span style="color:var(--text-dim)">No matches</span>';return}
+
+    let html=`<div class="result-header"><span class="result-count">${matches.length} match${matches.length>1?'es':''}</span><span style="color:var(--text-dim)">/${pattern}/${flags}</span></div>`;
+    matches.forEach((m,i)=>{
+      html+=`<div class="match-item"><span class="match-idx">#${i+1}</span> <span class="match-val">"${esc(m.value)}"</span> <span style="color:var(--text-dim)">at ${m.index}</span>`;
+      if(m.groups.length)html+=`<div class="match-groups">Groups: ${m.groups.map((g,j)=>`<span style="color:${['#818cf8','#f472b6','#ffaa00'][j%3]}">${j+1}: "${esc(g||'')}"</span>`).join(', ')}</div>`;
+      html+=`</div>`;
+    });
+    resultsEl.innerHTML=html;
+  }catch(e){
+    patternEl.classList.add('error');
+    resultsEl.innerHTML=`<span class="result-error">Error: ${esc(e.message)}</span>`;
+    highlightText(text,[]);
+  }
+}
+
+function highlightText(text,matches){
+  if(!matches.length){textEl.innerHTML=esc(text);return}
+  let html='',last=0;
+  const sorted=[...matches].sort((a,b)=>a.index-b.index);
+  for(const m of sorted){
+    if(m.index<last)continue;
+    html+=esc(text.slice(last,m.index));
+    html+=`<mark>${esc(m.value)}</mark>`;
+    last=m.index+m.value.length;
+  }
+  html+=esc(text.slice(last));
+  textEl.innerHTML=html;
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500)}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+test();
+</script>
+</body>
+</html>

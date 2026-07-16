@@ -1,0 +1,26 @@
+# Bookmarks — Evey
+
+> Free online bookmark manager. Save and organize links with tags, search, collections, and import/export. All data stays in your browser. No tracking, no ads, works offline.
+
+- URL: https://bookmarks.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Productivity
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Save and organize bookmarks
+- Tag-based organization
+- Full-text search across bookmarks
+- Collections for grouping links
+- Import and export bookmarks
+- Local browser storage only
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

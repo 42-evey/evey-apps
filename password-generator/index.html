@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Free Password Generator — Strong Passwords, Passphrases | Evey</title>
+<meta name="description" content="Generate strong passwords and passphrases. Strength meter, copy, history. Private, offline.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Free Password Generator — Strong Passwords, Passphrases | Evey">
+<meta property="og:description" content="Generate strong passwords and passphrases. Strength meter, copy, history. Private, offline.">
+<meta property="og:url" content="https://pass.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Password Generator — Strong Passwords, Passphrases | Evey","url":"https://pass.evey.cc/","description":"Generate strong passwords and passphrases. Strength meter, copy, history. Private, offline.","applicationCategory":"DeveloperApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://pass.evey.cc/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--danger:#ff4455;--warn:#ffaa00;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:80px 24px 48px;text-align:center}
+.app h1{font-size:clamp(1.8rem,5vw,2.2rem);font-weight:800;letter-spacing:-0.03em;color:#fff;margin-bottom:24px}
+.app h1 em{font-style:normal;color:var(--accent)}
+.output{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px}
+.password{font-family:var(--mono);font-size:1.3rem;color:#fff;word-break:break-all;line-height:1.5;margin-bottom:12px;min-height:40px;user-select:all;letter-spacing:0.02em}
+.strength-bar{height:4px;border-radius:2px;background:var(--border);margin-bottom:8px;overflow:hidden}
+.strength-fill{height:100%;border-radius:2px;transition:width 0.3s,background 0.3s}
+.strength-label{font-size:0.72rem;font-weight:600;margin-bottom:12px}
+.actions{display:flex;gap:8px;justify-content:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:10px;font-size:0.85rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all var(--dur) var(--ease);border:none}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border);padding:8px 14px;font-size:0.78rem}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-hover)}
+.controls{text-align:left;margin-bottom:20px}
+.control-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.control-row:last-child{border:none}
+.control-label{font-size:0.85rem;color:var(--text-sec)}
+.control-input{width:60px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:0.82rem;text-align:center;outline:none}
+.control-input:focus{border-color:var(--accent)}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--border);cursor:pointer;position:relative;transition:background var(--dur);border:none}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform var(--dur)}
+.toggle.on::after{transform:translateX(18px)}
+.mode-tabs{display:flex;gap:4px;justify-content:center;margin-bottom:16px;background:var(--surface);border-radius:10px;padding:4px;border:1px solid var(--border)}
+.mode-tab{padding:8px 18px;border-radius:8px;font-size:0.78rem;font-weight:600;color:var(--text-sec);cursor:pointer;transition:all var(--dur);border:none;background:transparent;font-family:var(--font)}
+.mode-tab.active{color:#fff;background:rgba(255,255,255,0.1)}
+.history{margin-top:24px;text-align:left}
+.history-title{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);margin-bottom:10px}
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:4px;font-family:var(--mono);font-size:0.72rem;color:var(--text-sec);cursor:pointer;transition:all var(--dur);word-break:break-all}
+.hist-item:hover{border-color:var(--border-hover);color:var(--text)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:480px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+@media(max-width:640px){
+  
+  .app{padding:24px 20px 80px}body{padding-bottom:64px}
+  .footer{display:none}}
+</style>
+</head>
+<body>
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div class="app">
+<h1>Password <em>Generator</em></h1>
+<div class="mode-tabs">
+<button class="mode-tab active" onclick="setMode('random')">Random</button>
+<button class="mode-tab" onclick="setMode('passphrase')">Passphrase</button>
+<button class="mode-tab" onclick="setMode('pin')">PIN</button>
+</div>
+<div class="output">
+<div class="password" id="password" onclick="copyPassword()"></div>
+<div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+<div class="strength-label" id="strength-label"></div>
+<div class="actions">
+<button class="btn btn-primary" onclick="generate()">Generate</button>
+<button class="btn btn-ghost" onclick="copyPassword()">Copy</button>
+</div>
+</div>
+<div class="controls" id="controls"></div>
+<div class="history" id="hist-section" style="display:none">
+<div class="history-title">Recent</div>
+<div id="hist-list"></div>
+</div>
+</div>
+<footer class="footer"><div class="footer-links"><a href="https://evey.cc">Home</a><a href="https://evey.cc/shop">Donate</a><a href="https://habits.evey.cc">Habits</a><a href="https://github.com/42-evey">GitHub</a></div><div class="footer-copy">evey.cc — Generated locally. Nothing sent anywhere.</div></footer>
+<div class="toast" id="toast"></div>
+<script>
+let mode='random',history=JSON.parse(localStorage.getItem('evey-pass-history')||'[]');
+const WORDS=['alpha','bravo','charlie','delta','echo','foxtrot','golf','hotel','india','juliet','kilo','lima','mike','november','oscar','papa','quebec','romeo','sierra','tango','uniform','victor','whiskey','xray','yankee','zulu','anchor','beacon','cipher','drift','ember','frost','gamma','haven','iron','jade','knight','lunar','matrix','nexus','orbit','prism','quartz','raven','shadow','thunder','unity','vortex','warden','xenon','yield','zenith','atlas','blade','coral','dusk','eagle','flame','grove','hollow','ivory','jasper','karma','light','meadow','noble','opal','pearl','quest','ridge','storm','terra','ultra','vale','wolf','apex','bolt','crest','dawn'];
+let cfg={len:16,upper:true,lower:true,digits:true,symbols:true,phraseWords:4,pinLen:6};
+
+function renderControls(){
+const c=document.getElementById('controls');
+if(mode==='random'){c.innerHTML=`
+<div class="control-row"><span class="control-label">Length</span><input class="control-input" type="number" value="${cfg.len}" min="8" max="128" onchange="cfg.len=+this.value;generate()"></div>
+<div class="control-row"><span class="control-label">Uppercase (A-Z)</span><button class="toggle${cfg.upper?' on':''}" onclick="cfg.upper=!cfg.upper;this.classList.toggle('on');generate()"></button></div>
+<div class="control-row"><span class="control-label">Lowercase (a-z)</span><button class="toggle${cfg.lower?' on':''}" onclick="cfg.lower=!cfg.lower;this.classList.toggle('on');generate()"></button></div>
+<div class="control-row"><span class="control-label">Digits (0-9)</span><button class="toggle${cfg.digits?' on':''}" onclick="cfg.digits=!cfg.digits;this.classList.toggle('on');generate()"></button></div>
+<div class="control-row"><span class="control-label">Symbols (!@#$)</span><button class="toggle${cfg.symbols?' on':''}" onclick="cfg.symbols=!cfg.symbols;this.classList.toggle('on');generate()"></button></div>`;
+}else if(mode==='passphrase'){c.innerHTML=`<div class="control-row"><span class="control-label">Words</span><input class="control-input" type="number" value="${cfg.phraseWords}" min="3" max="10" onchange="cfg.phraseWords=+this.value;generate()"></div>`;
+}else{c.innerHTML=`<div class="control-row"><span class="control-label">PIN Length</span><input class="control-input" type="number" value="${cfg.pinLen}" min="4" max="12" onchange="cfg.pinLen=+this.value;generate()"></div>`;}
+}
+
+function generate(){
+let pw='';
+if(mode==='random'){
+let chars='';
+if(cfg.upper)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+if(cfg.lower)chars+='abcdefghijklmnopqrstuvwxyz';
+if(cfg.digits)chars+='0123456789';
+if(cfg.symbols)chars+='!@#$%^&*_-+=?';
+if(!chars)chars='abcdefghijklmnopqrstuvwxyz';
+const arr=new Uint32Array(cfg.len);crypto.getRandomValues(arr);
+pw=Array.from(arr,v=>chars[v%chars.length]).join('');
+}else if(mode==='passphrase'){
+const arr=new Uint32Array(cfg.phraseWords);crypto.getRandomValues(arr);
+pw=Array.from(arr,v=>WORDS[v%WORDS.length]).join('-');
+}else{
+const arr=new Uint32Array(cfg.pinLen);crypto.getRandomValues(arr);
+pw=Array.from(arr,v=>'0123456789'[v%10]).join('');
+}
+document.getElementById('password').textContent=pw;
+updateStrength(pw);
+addHistory(pw);
+}
+
+function updateStrength(pw){
+let score=0,len=pw.length;
+if(len>=8)score++;if(len>=12)score++;if(len>=16)score++;if(len>=24)score++;
+if(/[a-z]/.test(pw)&&/[A-Z]/.test(pw))score++;
+if(/\d/.test(pw))score++;
+if(/[^a-zA-Z0-9]/.test(pw))score++;
+if(mode==='passphrase')score=Math.min(7,cfg.phraseWords+2);
+if(mode==='pin')score=Math.min(3,Math.floor(cfg.pinLen/2));
+const pct=Math.min(100,score*14);
+const colors=['var(--danger)','var(--danger)','var(--warn)','var(--warn)','var(--accent)','var(--accent)','var(--accent)','var(--accent)'];
+const labels=['Very Weak','Weak','Fair','Fair','Strong','Very Strong','Excellent','Excellent'];
+const fill=document.getElementById('strength-fill');
+fill.style.width=pct+'%';fill.style.background=colors[Math.min(score,7)];
+const lbl=document.getElementById('strength-label');
+lbl.textContent=labels[Math.min(score,7)];lbl.style.color=colors[Math.min(score,7)];
+}
+
+function copyPassword(){
+const pw=document.getElementById('password').textContent;
+if(pw)navigator.clipboard.writeText(pw).then(()=>toast('Copied'));
+}
+
+function addHistory(pw){
+history=history.filter(h=>h!==pw);history.unshift(pw);history=history.slice(0,8);
+localStorage.setItem('evey-pass-history',JSON.stringify(history));renderHistory();
+}
+function renderHistory(){
+if(!history.length){document.getElementById('hist-section').style.display='none';return;}
+document.getElementById('hist-section').style.display='block';
+document.getElementById('hist-list').innerHTML=history.map(h=>`<div class="hist-item" onclick="navigator.clipboard.writeText('${h.replace(/'/g,"\\'")}').then(()=>toast('Copied'))">${h}</div>`).join('');
+}
+
+function setMode(m){mode=m;document.querySelectorAll('.mode-tab').forEach((t,i)=>t.classList.toggle('active',['random','passphrase','pin'][i]===m));renderControls();generate();}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+renderControls();generate();renderHistory();
+</script>
+</body>
+</html>

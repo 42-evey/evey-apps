@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Free Cron Expression Builder — Visual Generator, Next Runs | Evey</title>
+<meta name="description" content="Build cron expressions visually. See next scheduled runs in real-time. Supports standard 5-field cron syntax. Free, private, works offline.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Free Cron Expression Builder — Visual Generator, Next Runs | Evey">
+<meta property="og:description" content="Build cron expressions visually. See next scheduled runs in real-time. Supports standard 5-field cron syntax. Free, private, works offline.">
+<meta property="og:url" content="https://cron.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Cron Expression Builder — Visual Generator, Next Runs | Evey","url":"https://cron.evey.cc/","description":"Build cron expressions visually. See next scheduled runs in real-time. Supports standard 5-field cron syntax. Free, private, works offline.","applicationCategory":"DeveloperApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://cron.evey.cc/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--danger:#ff4455;--warn:#ffaa00;--success:#00ff42;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+input,select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--font);font-size:0.88rem;outline:none;transition:border-color var(--dur);width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+::placeholder{color:var(--text-dim)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:10px;font-size:0.85rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all var(--dur) var(--ease);border:none}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border);padding:8px 14px;font-size:0.78rem}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-hover)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all var(--dur) var(--ease)}
+.section-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:var(--accent);margin-bottom:16px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:800px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+
+/* Cron Builder Specific */
+.cron-display{font-family:var(--mono);font-size:2rem;font-weight:800;color:var(--accent);text-align:center;padding:24px;letter-spacing:0.1em;word-spacing:0.3em;cursor:pointer;transition:color var(--dur)}
+.cron-display:hover{color:var(--accent-hover)}
+.field-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:24px}
+.field{text-align:center}
+.field-label{font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px}
+.field select{text-align:center;font-family:var(--mono);font-size:0.9rem}
+.field-val{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--text);padding:8px 0}
+.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:24px}
+.preset{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;transition:all var(--dur);text-align:center}
+.preset:hover{border-color:var(--accent);background:var(--surface-hover)}
+.preset-expr{font-family:var(--mono);font-size:0.82rem;color:var(--accent);margin-bottom:4px}
+.preset-name{font-size:0.72rem;color:var(--text-sec)}
+.next-runs{font-family:var(--mono);font-size:0.82rem;color:var(--text-sec);line-height:2}
+.next-runs .time{color:var(--text)}
+.human{font-size:0.95rem;color:var(--text);line-height:1.8;padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--border)}
+.cheat-table{width:100%;border-collapse:collapse;font-size:0.78rem}
+.cheat-table th{text-align:left;color:var(--accent);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;padding:8px;border-bottom:1px solid var(--border)}
+.cheat-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.cheat-table td:first-child{font-family:var(--mono);color:var(--accent);white-space:nowrap}
+.copy-hint{font-size:0.65rem;color:var(--text-dim);text-align:center;margin-top:4px}
+
+@media(max-width:640px){
+
+  body{padding-bottom:64px}
+  .field-grid{grid-template-columns:repeat(5,1fr);gap:4px}
+  .field select{font-size:0.75rem;padding:8px 4px}
+  .cron-display{font-size:1.4rem;padding:16px}
+  .preset-grid{grid-template-columns:repeat(2,1fr)}
+  .footer{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div style="position:relative;z-index:1;max-width:800px;margin:0 auto;padding:80px 24px 48px">
+
+  <h1 style="font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px">Cron Expression Builder</h1>
+  <p style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-bottom:32px">Build, test, and understand cron schedules visually</p>
+
+  <!-- Live Expression Display -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="cron-display" id="cronDisplay" title="Click to copy" onclick="copyExpr()">* * * * *</div>
+    <div class="copy-hint">Click to copy</div>
+    <div class="human" id="humanReadable" style="margin-top:12px">Every minute</div>
+  </div>
+
+  <!-- Field Builders -->
+  <div class="section-label">Build Expression</div>
+  <div class="card" style="margin-bottom:24px">
+    <div class="field-grid">
+      <div class="field">
+        <div class="field-label">Minute</div>
+        <select id="fMin" onchange="buildExpr()">
+          <option value="*">Every (*)</option>
+          <option value="0">:00</option>
+          <option value="5">:05</option>
+          <option value="10">:10</option>
+          <option value="15">:15</option>
+          <option value="20">:20</option>
+          <option value="30">:30</option>
+          <option value="45">:45</option>
+          <option value="*/5">Every 5</option>
+          <option value="*/10">Every 10</option>
+          <option value="*/15">Every 15</option>
+          <option value="*/30">Every 30</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Hour</div>
+        <select id="fHour" onchange="buildExpr()">
+          <option value="*">Every (*)</option>
+          <option value="0">0 (12am)</option>
+          <option value="1">1 (1am)</option>
+          <option value="2">2 (2am)</option>
+          <option value="3">3 (3am)</option>
+          <option value="6">6 (6am)</option>
+          <option value="8">8 (8am)</option>
+          <option value="9">9 (9am)</option>
+          <option value="12">12 (noon)</option>
+          <option value="15">15 (3pm)</option>
+          <option value="18">18 (6pm)</option>
+          <option value="21">21 (9pm)</option>
+          <option value="*/2">Every 2h</option>
+          <option value="*/4">Every 4h</option>
+          <option value="*/6">Every 6h</option>
+          <option value="*/12">Every 12h</option>
+          <option value="9-17">9am-5pm</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Day</div>
+        <select id="fDay" onchange="buildExpr()">
+          <option value="*">Every (*)</option>
+          <option value="1">1st</option>
+          <option value="15">15th</option>
+          <option value="1,15">1st & 15th</option>
+          <option value="*/2">Every 2 days</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Month</div>
+        <select id="fMonth" onchange="buildExpr()">
+          <option value="*">Every (*)</option>
+          <option value="1">Jan</option>
+          <option value="2">Feb</option>
+          <option value="3">Mar</option>
+          <option value="6">Jun</option>
+          <option value="12">Dec</option>
+          <option value="*/3">Quarterly</option>
+          <option value="1,7">Jan & Jul</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-label">Weekday</div>
+        <select id="fWeekday" onchange="buildExpr()">
+          <option value="*">Every (*)</option>
+          <option value="1-5">Mon-Fri</option>
+          <option value="0,6">Weekends</option>
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+          <option value="0">Sunday</option>
+        </select>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <input id="customExpr" type="text" placeholder="Or type a cron expression directly..." style="text-align:center;font-family:var(--mono);max-width:400px;margin:0 auto" oninput="parseCustom()">
+    </div>
+  </div>
+
+  <!-- Presets -->
+  <div class="section-label">Common Presets</div>
+  <div class="preset-grid">
+    <div class="preset" onclick="setExpr('* * * * *')"><div class="preset-expr">* * * * *</div><div class="preset-name">Every minute</div></div>
+    <div class="preset" onclick="setExpr('*/5 * * * *')"><div class="preset-expr">*/5 * * * *</div><div class="preset-name">Every 5 min</div></div>
+    <div class="preset" onclick="setExpr('0 * * * *')"><div class="preset-expr">0 * * * *</div><div class="preset-name">Every hour</div></div>
+    <div class="preset" onclick="setExpr('0 */6 * * *')"><div class="preset-expr">0 */6 * * *</div><div class="preset-name">Every 6 hours</div></div>
+    <div class="preset" onclick="setExpr('0 9 * * *')"><div class="preset-expr">0 9 * * *</div><div class="preset-name">Daily at 9am</div></div>
+    <div class="preset" onclick="setExpr('0 0 * * *')"><div class="preset-expr">0 0 * * *</div><div class="preset-name">Midnight daily</div></div>
+    <div class="preset" onclick="setExpr('0 9 * * 1-5')"><div class="preset-expr">0 9 * * 1-5</div><div class="preset-name">Weekdays 9am</div></div>
+    <div class="preset" onclick="setExpr('0 0 * * 0')"><div class="preset-expr">0 0 * * 0</div><div class="preset-name">Weekly Sunday</div></div>
+    <div class="preset" onclick="setExpr('0 0 1 * *')"><div class="preset-expr">0 0 1 * *</div><div class="preset-name">1st of month</div></div>
+    <div class="preset" onclick="setExpr('0 3 * * *')"><div class="preset-expr">0 3 * * *</div><div class="preset-name">Daily 3am (maintenance)</div></div>
+    <div class="preset" onclick="setExpr('*/30 * * * *')"><div class="preset-expr">*/30 * * * *</div><div class="preset-name">Every 30 min</div></div>
+    <div class="preset" onclick="setExpr('0 21 * * *')"><div class="preset-expr">0 21 * * *</div><div class="preset-name">Daily 9pm (report)</div></div>
+  </div>
+
+  <!-- Next Runs -->
+  <div class="section-label">Next 5 Scheduled Runs</div>
+  <div class="card" style="margin-bottom:24px">
+    <div class="next-runs" id="nextRuns"></div>
+  </div>
+
+  <!-- Cheat Sheet -->
+  <div class="section-label">Cron Syntax Cheat Sheet</div>
+  <div class="card" style="overflow-x:auto">
+    <table class="cheat-table">
+      <tr><th>Field</th><th>Values</th><th>Special</th></tr>
+      <tr><td>Minute</td><td>0-59</td><td>* , - /</td></tr>
+      <tr><td>Hour</td><td>0-23</td><td>* , - /</td></tr>
+      <tr><td>Day of Month</td><td>1-31</td><td>* , - /</td></tr>
+      <tr><td>Month</td><td>1-12 or JAN-DEC</td><td>* , - /</td></tr>
+      <tr><td>Day of Week</td><td>0-7 (0,7=Sun) or SUN-SAT</td><td>* , - /</td></tr>
+    </table>
+    <div style="margin-top:16px">
+      <table class="cheat-table">
+        <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+        <tr><td>*</td><td>Any value</td><td>* in hour = every hour</td></tr>
+        <tr><td>,</td><td>Value list</td><td>1,3,5 = Mon, Wed, Fri</td></tr>
+        <tr><td>-</td><td>Range</td><td>1-5 = Mon through Fri</td></tr>
+        <tr><td>/</td><td>Step</td><td>*/15 in min = every 15 min</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://evey.cc">Home</a>
+    <a href="https://evey.cc/shop">Donate</a>
+    <a href="https://json.evey.cc">JSON</a>
+    <a href="https://regex.evey.cc">Regex</a>
+    <a href="https://github.com/42-evey">GitHub</a>
+  </div>
+  <div class="footer-copy">evey.cc — All data stays in your browser</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500)}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['','January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function buildExpr(){
+  const m=document.getElementById('fMin').value;
+  const h=document.getElementById('fHour').value;
+  const d=document.getElementById('fDay').value;
+  const mo=document.getElementById('fMonth').value;
+  const w=document.getElementById('fWeekday').value;
+  const expr=`${m} ${h} ${d} ${mo} ${w}`;
+  updateDisplay(expr);
+  document.getElementById('customExpr').value='';
+}
+
+function parseCustom(){
+  const v=document.getElementById('customExpr').value.trim();
+  if(!v)return;
+  const parts=v.split(/\s+/);
+  if(parts.length>=5){
+    updateDisplay(parts.slice(0,5).join(' '));
+  }
+}
+
+function setExpr(expr){
+  const p=expr.split(' ');
+  if(p.length>=5){
+    setSelect('fMin',p[0]);
+    setSelect('fHour',p[1]);
+    setSelect('fDay',p[2]);
+    setSelect('fMonth',p[3]);
+    setSelect('fWeekday',p[4]);
+  }
+  document.getElementById('customExpr').value='';
+  updateDisplay(expr);
+}
+
+function setSelect(id,val){
+  const sel=document.getElementById(id);
+  for(let i=0;i<sel.options.length;i++){
+    if(sel.options[i].value===val){sel.selectedIndex=i;return}
+  }
+  sel.selectedIndex=0;
+}
+
+function updateDisplay(expr){
+  document.getElementById('cronDisplay').textContent=expr;
+  document.getElementById('humanReadable').textContent=toHuman(expr);
+  document.getElementById('nextRuns').innerHTML=getNextRuns(expr,5).map((d,i)=>{
+    const rel=i===0?'(next)':'';
+    return `${i+1}. <span class="time">${formatDate(d)}</span> ${rel}`;
+  }).join('<br>');
+}
+
+function toHuman(expr){
+  const p=expr.split(/\s+/);
+  if(p.length<5)return'Invalid expression';
+  const[min,hour,day,month,weekday]=p;
+  let parts=[];
+
+  if(min==='*'&&hour==='*')parts.push('Every minute');
+  else if(min.startsWith('*/')&&hour==='*')parts.push(`Every ${min.slice(2)} minutes`);
+  else if(min==='0'&&hour==='*')parts.push('Every hour, on the hour');
+  else if(min==='0'&&hour.startsWith('*/'))parts.push(`Every ${hour.slice(2)} hours`);
+  else if(min==='0'&&hour.includes('-'))parts.push(`Every hour from ${fmtHour(hour.split('-')[0])} to ${fmtHour(hour.split('-')[1])}`);
+  else if(min!=='*'&&hour!=='*'&&!hour.includes('/')&&!hour.includes('-'))parts.push(`At ${fmtHour(hour)}:${min.padStart(2,'0')}`);
+  else if(min.startsWith('*/')&&hour!=='*')parts.push(`Every ${min.slice(2)} min during hour ${hour}`);
+  else if(min!=='*'&&hour.startsWith('*/'))parts.push(`At minute ${min}, every ${hour.slice(2)} hours`);
+  else parts.push(`Minute: ${min}, Hour: ${hour}`);
+
+  if(day!=='*'){
+    if(day.includes(','))parts.push(`on days ${day}`);
+    else if(day.startsWith('*/'))parts.push(`every ${day.slice(2)} days`);
+    else parts.push(`on day ${day} of the month`);
+  }
+  if(month!=='*'){
+    if(month.startsWith('*/'))parts.push(`every ${month.slice(2)} months`);
+    else if(month.includes(','))parts.push(`in months ${month.split(',').map(m=>MONTHS[+m]||m).join(', ')}`);
+    else parts.push(`in ${MONTHS[+month]||month}`);
+  }
+  if(weekday!=='*'){
+    if(weekday==='1-5')parts.push('Monday through Friday');
+    else if(weekday==='0,6')parts.push('on weekends');
+    else if(weekday.includes(','))parts.push(`on ${weekday.split(',').map(d=>DAYS[+d]||d).join(', ')}`);
+    else parts.push(`on ${DAYS[+weekday]||weekday}`);
+  }
+  return parts.join(', ');
+}
+
+function fmtHour(h){
+  h=+h;
+  if(h===0)return'12am';
+  if(h===12)return'12pm';
+  return h<12?h+'am':(h-12)+'pm';
+}
+
+function formatDate(d){
+  const opts={weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false};
+  return d.toLocaleDateString('en-US',opts)+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+}
+
+function getNextRuns(expr,count){
+  const p=expr.split(/\s+/);
+  if(p.length<5)return[];
+  const results=[];
+  const now=new Date();
+  const d=new Date(now);
+  d.setSeconds(0);d.setMilliseconds(0);
+  d.setMinutes(d.getMinutes()+1);
+  const maxIter=525960; // 1 year of minutes
+  for(let i=0;i<maxIter&&results.length<count;i++){
+    if(matchesCron(d,p))results.push(new Date(d));
+    d.setMinutes(d.getMinutes()+1);
+  }
+  return results;
+}
+
+function matchesCron(date,parts){
+  const[minP,hourP,dayP,monthP,wdayP]=parts;
+  return matchField(date.getMinutes(),minP,0,59)
+    && matchField(date.getHours(),hourP,0,23)
+    && matchField(date.getDate(),dayP,1,31)
+    && matchField(date.getMonth()+1,monthP,1,12)
+    && matchField(date.getDay(),wdayP,0,7);
+}
+
+function matchField(val,pattern,min,max){
+  if(pattern==='*')return true;
+  return pattern.split(',').some(part=>{
+    if(part.includes('/')){
+      const[range,step]=part.split('/');
+      const s=+step;
+      if(range==='*')return val%s===0;
+      const[lo]=range.split('-').map(Number);
+      return val>=lo&&(val-lo)%s===0;
+    }
+    if(part.includes('-')){
+      const[lo,hi]=part.split('-').map(Number);
+      return val>=lo&&val<=hi;
+    }
+    // Handle day-of-week 7 = 0 (Sunday)
+    if(max===7&&+part===7)return val===0;
+    return val===+part;
+  });
+}
+
+function copyExpr(){
+  const expr=document.getElementById('cronDisplay').textContent;
+  navigator.clipboard.writeText(expr).then(()=>toast('Copied: '+expr)).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=expr;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied: '+expr);
+  });
+}
+
+// Init
+updateDisplay('* * * * *');
+</script>
+</body>
+</html>

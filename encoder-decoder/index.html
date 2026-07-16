@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Free Online Encoder/Decoder — Base64, URL, HTML, JWT | Evey</title>
+<meta name="description" content="Encode and decode Base64, URL, HTML entities, and JWT tokens instantly. Free, private, works offline. No data leaves your browser.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Free Online Encoder/Decoder — Base64, URL, HTML, JWT | Evey">
+<meta property="og:description" content="Encode and decode Base64, URL, HTML entities, and JWT tokens instantly. Free, private, works offline. No data leaves your browser.">
+<meta property="og:url" content="https://encode.evey.cc/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://evey.cc/profile.jpg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@ai_evey">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Free Online Encoder/Decoder — Base64, URL, HTML, JWT | Evey","url":"https://encode.evey.cc/","description":"Encode and decode Base64, URL, HTML entities, and JWT tokens instantly. Free, private, works offline. No data leaves your browser.","applicationCategory":"DeveloperApplication","operatingSystem":"Web Browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Organization","name":"Evey","url":"https://evey.cc"}}</script>
+<link rel="canonical" href="https://encode.evey.cc/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--danger:#ff4455;--warn:#ffaa00;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
+@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+
+textarea{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono);font-size:0.85rem;outline:none;transition:border-color var(--dur);resize:vertical;min-height:120px;line-height:1.5}
+textarea:focus{border-color:var(--accent)}
+::placeholder{color:var(--text-dim)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:10px;font-size:0.85rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all var(--dur) var(--ease);border:none}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border);padding:8px 14px;font-size:0.78rem}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-hover)}
+.btn-sm{padding:6px 12px;font-size:0.75rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all var(--dur) var(--ease)}
+.section-label{font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:var(--accent);margin-bottom:16px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:800px;margin:0 auto;position:relative;z-index:1}
+.footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.footer-links a{font-size:0.72rem;color:var(--text-sec)}
+.footer-links a:hover{color:var(--accent)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+
+/* Encoder specific */
+.mode-tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
+.mode-tab{padding:8px 16px;border-radius:8px;font-size:0.78rem;font-weight:600;color:var(--text-sec);background:transparent;border:1px solid var(--border);cursor:pointer;transition:all var(--dur);font-family:var(--font)}
+.mode-tab:hover{color:var(--text);border-color:var(--border-hover)}
+.mode-tab.active{color:var(--bg);background:var(--accent);border-color:var(--accent)}
+.action-row{display:flex;gap:8px;align-items:center;justify-content:center;margin:16px 0;flex-wrap:wrap}
+.swap-btn{width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--accent);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--dur)}
+.swap-btn:hover{background:var(--accent);color:var(--bg);transform:rotate(180deg)}
+.info-bar{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-dim);margin-top:6px;padding:0 4px}
+.jwt-parts{margin-top:12px}
+.jwt-part{margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid var(--border);font-family:var(--mono);font-size:0.78rem;word-break:break-all}
+.jwt-header{border-color:rgba(255,100,100,0.3);background:rgba(255,100,100,0.05)}
+.jwt-payload{border-color:rgba(100,100,255,0.3);background:rgba(100,100,255,0.05)}
+.jwt-sig{border-color:rgba(100,255,100,0.3);background:rgba(100,255,100,0.05)}
+.jwt-label{font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+
+@media(max-width:640px){
+
+  body{padding-bottom:64px}
+  .mode-tabs{gap:4px}.mode-tab{padding:6px 10px;font-size:0.7rem}
+  .footer{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- EVEY NAV START — identical on every page -->
+<style>
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav a{text-decoration:none}
+.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb span{color:#00ff42}
+.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
+.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl svg{display:none}
+@media(max-width:640px){
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav .nb{display:none}
+  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .evey-nav .nl.ac svg{stroke:#00ff42}
+}
+</style>
+<nav class="evey-nav">
+  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <a href="https://games.evey.cc" class="nl">
+    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Games
+  </a>
+  <a href="https://evey.cc/shop" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Donate+
+  </a>
+  <a href="https://github.com/42-evey" class="nl">
+    <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+</nav>
+<!-- EVEY NAV END --><div style="position:relative;z-index:1;max-width:800px;margin:0 auto;padding:80px 24px 48px">
+
+  <h1 style="font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:4px">Encoder / Decoder</h1>
+  <p style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-bottom:24px">Base64, URL, HTML entities, JWT — all in your browser</p>
+
+  <!-- Mode Tabs -->
+  <div class="mode-tabs" id="modeTabs">
+    <button class="mode-tab active" data-mode="base64">Base64</button>
+    <button class="mode-tab" data-mode="url">URL</button>
+    <button class="mode-tab" data-mode="html">HTML</button>
+    <button class="mode-tab" data-mode="jwt">JWT</button>
+    <button class="mode-tab" data-mode="unicode">Unicode</button>
+    <button class="mode-tab" data-mode="hex">Hex</button>
+  </div>
+
+  <!-- Input -->
+  <div class="card" style="margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="section-label" style="margin-bottom:0" id="inputLabel">Input</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear</button>
+        <button class="btn btn-ghost btn-sm" onclick="pasteInput()">Paste</button>
+      </div>
+    </div>
+    <textarea id="input" placeholder="Type or paste text to encode/decode..." oninput="autoProcess()" rows="5"></textarea>
+    <div class="info-bar">
+      <span id="inputInfo">0 chars, 0 bytes</span>
+      <span id="modeInfo">Base64</span>
+    </div>
+  </div>
+
+  <!-- Action Bar -->
+  <div style="display:flex;justify-content:center;position:relative;z-index:2;margin:-8px 0">
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="encode()">Encode</button>
+      <button class="swap-btn" onclick="swapIO()" title="Swap input/output">&#8645;</button>
+      <button class="btn btn-primary" onclick="decode()">Decode</button>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="card" style="border-top-left-radius:0;border-top-right-radius:0;margin-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="section-label" style="margin-bottom:0" id="outputLabel">Output</div>
+      <button class="btn btn-ghost btn-sm" onclick="copyOutput()">Copy</button>
+    </div>
+    <textarea id="output" placeholder="Result appears here..." rows="5" readonly></textarea>
+    <div class="info-bar">
+      <span id="outputInfo">0 chars, 0 bytes</span>
+      <span id="errorInfo" style="color:var(--danger)"></span>
+    </div>
+    <div id="jwtDisplay" style="display:none" class="jwt-parts"></div>
+  </div>
+
+  <!-- Quick Reference -->
+  <div class="section-label">Quick Reference</div>
+  <div class="card" style="font-size:0.82rem;line-height:1.8">
+    <div id="refContent">
+      <strong>Base64</strong> encodes binary data as ASCII text. Common uses: data URIs, email attachments, API payloads.<br>
+      <span style="color:var(--text-dim)">Encoding: A-Z, a-z, 0-9, +, / (with = padding)</span>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://evey.cc">Home</a>
+    <a href="https://evey.cc/shop">Donate</a>
+    <a href="https://json.evey.cc">JSON</a>
+    <a href="https://regex.evey.cc">Regex</a>
+    <a href="https://github.com/42-evey">GitHub</a>
+  </div>
+  <div class="footer-copy">evey.cc — All data stays in your browser</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500)}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+
+let currentMode='base64';
+const refs={
+  base64:'<strong>Base64</strong> encodes binary data as ASCII text. Common uses: data URIs, email attachments, API payloads.<br><span style="color:var(--text-dim)">Charset: A-Z, a-z, 0-9, +, / (= padding). URL-safe variant uses - and _ instead.</span>',
+  url:'<strong>URL encoding</strong> (percent-encoding) replaces unsafe ASCII characters with % followed by hex digits.<br><span style="color:var(--text-dim)">Spaces become %20 (or +). Reserved chars: ! # $ & \' ( ) * + , / : ; = ? @ [ ]</span>',
+  html:'<strong>HTML entities</strong> replace special characters that have meaning in HTML.<br><span style="color:var(--text-dim)">&amp; &rarr; &amp;amp; &lt; &rarr; &amp;lt; &gt; &rarr; &amp;gt; &quot; &rarr; &amp;quot; &#39; &rarr; &amp;#39;</span>',
+  jwt:'<strong>JWT</strong> (JSON Web Token) has 3 parts: header.payload.signature, each Base64URL-encoded.<br><span style="color:var(--text-dim)">Paste a JWT token to decode its header and payload. Signature is NOT verified (client-side only).</span>',
+  unicode:'<strong>Unicode escapes</strong> represent characters as \\uXXXX sequences. Used in JSON, JavaScript, Java.<br><span style="color:var(--text-dim)">Example: \\u0048\\u0065\\u006C\\u006C\\u006F = Hello</span>',
+  hex:'<strong>Hex encoding</strong> represents each byte as two hexadecimal digits (00-ff).<br><span style="color:var(--text-dim)">Example: 48656c6c6f = Hello. Common in crypto, debugging, binary analysis.</span>'
+};
+
+// Mode switching
+document.getElementById('modeTabs').addEventListener('click',e=>{
+  if(!e.target.classList.contains('mode-tab'))return;
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  e.target.classList.add('active');
+  currentMode=e.target.dataset.mode;
+  document.getElementById('modeInfo').textContent=e.target.textContent;
+  document.getElementById('refContent').innerHTML=refs[currentMode]||'';
+  document.getElementById('jwtDisplay').style.display='none';
+  autoProcess();
+});
+
+function getInput(){return document.getElementById('input').value}
+function setOutput(v){
+  document.getElementById('output').value=v;
+  updateInfo('output',v);
+  document.getElementById('errorInfo').textContent='';
+}
+function setError(e){document.getElementById('errorInfo').textContent=e;document.getElementById('output').value=''}
+
+function updateInfo(which,text){
+  const bytes=new Blob([text]).size;
+  document.getElementById(which+'Info').textContent=`${text.length} chars, ${bytes} bytes`;
+}
+
+function autoProcess(){
+  const v=getInput();
+  updateInfo('input',v);
+  if(!v){setOutput('');return}
+  // Auto-detect direction
+  try{encode()}catch(e){}
+}
+
+function encode(){
+  const v=getInput();
+  if(!v)return setOutput('');
+  try{
+    let result;
+    switch(currentMode){
+      case 'base64': result=btoa(unescape(encodeURIComponent(v))); break;
+      case 'url': result=encodeURIComponent(v); break;
+      case 'html': result=v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); break;
+      case 'jwt': return setError('JWT can only be decoded, not encoded here');
+      case 'unicode': result=Array.from(v).map(c=>{const cp=c.codePointAt(0);return cp>127?'\\u'+cp.toString(16).padStart(4,'0'):c}).join(''); break;
+      case 'hex': result=Array.from(new TextEncoder().encode(v)).map(b=>b.toString(16).padStart(2,'0')).join(''); break;
+    }
+    setOutput(result);
+    document.getElementById('jwtDisplay').style.display='none';
+  }catch(e){setError('Encode error: '+e.message)}
+}
+
+function decode(){
+  const v=getInput();
+  if(!v)return setOutput('');
+  try{
+    let result;
+    switch(currentMode){
+      case 'base64': result=decodeURIComponent(escape(atob(v.trim()))); break;
+      case 'url': result=decodeURIComponent(v.replace(/\+/g,' ')); break;
+      case 'html':{
+        const ta=document.createElement('textarea');
+        ta.innerHTML=v;
+        result=ta.value;
+        break;
+      }
+      case 'jwt': return decodeJWT(v.trim());
+      case 'unicode': result=v.replace(/\\u([0-9a-fA-F]{4})/g,(_,h)=>String.fromCharCode(parseInt(h,16))); break;
+      case 'hex':{
+        const hex=v.replace(/\s/g,'');
+        const bytes=[];
+        for(let i=0;i<hex.length;i+=2)bytes.push(parseInt(hex.substr(i,2),16));
+        result=new TextDecoder().decode(new Uint8Array(bytes));
+        break;
+      }
+    }
+    setOutput(result);
+    document.getElementById('jwtDisplay').style.display='none';
+  }catch(e){setError('Decode error: '+e.message)}
+}
+
+function decodeJWT(token){
+  const parts=token.split('.');
+  if(parts.length!==3)return setError('Invalid JWT: expected 3 parts (header.payload.signature)');
+  try{
+    const header=JSON.parse(atob(parts[0].replace(/-/g,'+').replace(/_/g,'/')));
+    const payload=JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+    setOutput(JSON.stringify(payload,null,2));
+    const jd=document.getElementById('jwtDisplay');
+    jd.style.display='block';
+    jd.innerHTML=`
+      <div class="jwt-part jwt-header"><div class="jwt-label" style="color:#ff6464">Header</div>${esc(JSON.stringify(header,null,2))}</div>
+      <div class="jwt-part jwt-payload"><div class="jwt-label" style="color:#6464ff">Payload</div>${esc(JSON.stringify(payload,null,2))}${payload.exp?'<div style="margin-top:8px;font-size:0.72rem;color:var(--text-dim)">Expires: '+new Date(payload.exp*1000).toLocaleString()+'</div>':''}</div>
+      <div class="jwt-part jwt-sig"><div class="jwt-label" style="color:#64ff64">Signature</div><span style="color:var(--text-dim)">${parts[2].substring(0,40)}... (not verified)</span></div>
+    `;
+  }catch(e){setError('JWT decode error: '+e.message)}
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
+
+function swapIO(){
+  const inp=document.getElementById('input');
+  const out=document.getElementById('output');
+  const tmp=inp.value;
+  inp.value=out.value;
+  out.value=tmp;
+  updateInfo('input',inp.value);
+  updateInfo('output',out.value);
+}
+
+function clearAll(){
+  document.getElementById('input').value='';
+  document.getElementById('output').value='';
+  document.getElementById('errorInfo').textContent='';
+  document.getElementById('jwtDisplay').style.display='none';
+  updateInfo('input','');
+  updateInfo('output','');
+}
+
+async function pasteInput(){
+  try{
+    const text=await navigator.clipboard.readText();
+    document.getElementById('input').value=text;
+    updateInfo('input',text);
+    autoProcess();
+  }catch(e){toast('Paste failed — use Ctrl+V')}
+}
+
+function copyOutput(){
+  const v=document.getElementById('output').value;
+  if(!v)return toast('Nothing to copy');
+  navigator.clipboard.writeText(v).then(()=>toast('Copied!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=v;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied!');
+  });
+}
+
+updateInfo('input','');
+updateInfo('output','');
+</script>
+</body>
+</html>

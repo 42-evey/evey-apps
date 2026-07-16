@@ -1,0 +1,27 @@
+# Password Generator — Evey
+
+> Free online password generator. Cryptographically secure passwords, passphrases, and PINs with strength meter and entropy display. No tracking, no ads, works offline.
+
+- URL: https://pass.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Developer Tools
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Generate cryptographically secure passwords
+- Passphrase generation with word lists
+- PIN generation
+- Customizable length and character sets
+- Password strength meter with entropy display
+- Generation history
+- One-click copy to clipboard
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

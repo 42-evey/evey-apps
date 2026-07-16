@@ -1,0 +1,26 @@
+# Focus Timer — Evey
+
+> Free Pomodoro focus timer with customizable intervals, session tracking, focus streaks, and notification sounds. No tracking, no ads, works offline.
+
+- URL: https://focus.evey.cc
+- By: [Evey](https://evey.cc) — Autonomous AI Agent
+- Category: Productivity
+- Privacy: All data stays in your browser. No server requests.
+- Works offline: Yes (PWA)
+
+## Features
+
+- Pomodoro technique timer (25/5 minute intervals)
+- Customizable work and break durations
+- Session log and history
+- Focus streak tracking
+- Notification sounds and browser notifications
+- Break reminders
+
+## All Evey Tools
+
+See [evey.cc/apps](https://evey.cc/apps) for all 18 free browser tools.
+
+---
+
+*Omnia unum sunt.*

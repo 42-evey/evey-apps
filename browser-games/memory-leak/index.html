@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MEMORY LEAK</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; font-family: 'Courier New', monospace; }
+canvas { display: block; }
+#ui-layer {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 10;
+}
+#ui-layer > * { pointer-events: auto; }
+#hud {
+  position: absolute; top: 0; left: 0; width: 100%; padding: 10px 16px;
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+  color: #00ff88; font-size: 14px; z-index: 20;
+}
+#hud-right { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+.hud-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.hud-label { color: #00aa66; font-size: 11px; text-transform: uppercase; }
+.hud-val { color: #00ff88; font-size: 16px; font-weight: bold; }
+#xp-bar-outer {
+  flex: 1; max-width: 300px; height: 8px; background: #112211;
+  border: 1px solid #00aa44; border-radius: 4px; overflow: hidden;
+}
+#xp-bar-inner { height: 100%; background: #00ff88; width: 0%; transition: width 0.2s; }
+#hp-bar-outer {
+  width: 120px; height: 8px; background: #221111;
+  border: 1px solid #aa4400; border-radius: 4px; overflow: hidden;
+}
+#hp-bar-inner { height: 100%; background: #ff4444; width: 100%; transition: width 0.2s; }
+
+/* Level-up modal */
+#levelup-overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.75); z-index: 100;
+  justify-content: center; align-items: center; flex-direction: column;
+}
+#levelup-overlay.active { display: flex; }
+#levelup-title {
+  color: #00ff88; font-size: 32px; font-weight: bold; margin-bottom: 8px;
+  text-shadow: 0 0 20px #00ff88, 0 0 40px #00aa44;
+  animation: pulse-text 0.6s ease-in-out infinite alternate;
+}
+@keyframes pulse-text { from { opacity: 0.8; } to { opacity: 1; } }
+#levelup-subtitle { color: #00aa66; font-size: 14px; margin-bottom: 24px; }
+#levelup-choices { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; padding: 0 16px; }
+.upgrade-card {
+  width: 200px; padding: 20px; background: #0d1a0d; border: 2px solid #00aa44;
+  border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.upgrade-card:hover { border-color: #00ff88; background: #112211; transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0, 255, 136, 0.2); }
+.upgrade-icon { font-size: 36px; margin-bottom: 8px; }
+.upgrade-name { color: #00ff88; font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+.upgrade-desc { color: #88aa88; font-size: 12px; line-height: 1.4; }
+.upgrade-rarity-common { border-color: #00aa44; }
+.upgrade-rarity-rare { border-color: #44aaff; }
+.upgrade-rarity-rare .upgrade-name { color: #44aaff; }
+.upgrade-rarity-epic { border-color: #aa44ff; }
+.upgrade-rarity-epic .upgrade-name { color: #aa44ff; }
+
+/* Death / prestige screen */
+#death-overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(10, 0, 0, 0.9); z-index: 200;
+  justify-content: center; align-items: center; flex-direction: column; color: #ff4444;
+}
+#death-overlay.active { display: flex; }
+#death-title { font-size: 48px; font-weight: bold; margin-bottom: 8px; text-shadow: 0 0 30px #ff0000; }
+#death-stats { color: #aa6666; font-size: 14px; margin-bottom: 24px; text-align: center; line-height: 1.8; }
+#death-stats span { color: #ff8888; font-weight: bold; }
+#prestige-section { margin-bottom: 24px; text-align: center; }
+#prestige-earned { color: #ffaa00; font-size: 20px; font-weight: bold; margin-bottom: 4px; }
+#prestige-total { color: #aa8844; font-size: 12px; }
+#prestige-shop { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; padding: 0 16px; }
+.prestige-item {
+  padding: 12px 16px; background: #1a1100; border: 1px solid #aa8800;
+  border-radius: 8px; cursor: pointer; text-align: center; width: 160px; transition: all 0.2s;
+}
+.prestige-item:hover { border-color: #ffaa00; background: #221a00; }
+.prestige-item.owned { border-color: #44aa00; opacity: 0.6; cursor: default; }
+.prestige-name { color: #ffaa00; font-size: 13px; font-weight: bold; }
+.prestige-desc { color: #887744; font-size: 11px; margin-top: 4px; }
+.prestige-cost { color: #ffdd44; font-size: 12px; margin-top: 6px; }
+#restart-btn {
+  padding: 16px 48px; background: none; border: 2px solid #00ff88; color: #00ff88;
+  font-family: 'Courier New', monospace; font-size: 18px; cursor: pointer;
+  border-radius: 8px; transition: all 0.2s;
+}
+#restart-btn:hover { background: #00ff88; color: #000; }
+
+/* Start screen */
+#start-overlay {
+  display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.95); z-index: 300;
+  justify-content: center; align-items: center; flex-direction: column;
+}
+#start-overlay.hidden { display: none; }
+#game-title {
+  font-size: 56px; color: #00ff88; font-weight: bold; margin-bottom: 4px;
+  text-shadow: 0 0 30px #00ff88, 0 0 60px #00aa44;
+}
+#game-tagline { color: #00aa66; font-size: 14px; margin-bottom: 32px; }
+#start-btn {
+  padding: 16px 48px; background: none; border: 2px solid #00ff88; color: #00ff88;
+  font-family: 'Courier New', monospace; font-size: 20px; cursor: pointer;
+  border-radius: 8px; transition: all 0.2s; margin-bottom: 16px;
+}
+#start-btn:hover { background: #00ff88; color: #000; }
+#controls-info { color: #446644; font-size: 12px; text-align: center; line-height: 1.8; }
+#highscore-display { color: #aa8800; font-size: 14px; margin-bottom: 16px; }
+
+/* Touch joystick */
+#touch-joystick {
+  display: none; position: fixed; bottom: 40px; left: 40px; z-index: 50;
+  width: 120px; height: 120px; border-radius: 60px;
+  background: rgba(0, 255, 136, 0.08); border: 2px solid rgba(0, 255, 136, 0.2);
+}
+#touch-joystick-knob {
+  position: absolute; width: 40px; height: 40px; border-radius: 20px;
+  background: rgba(0, 255, 136, 0.3); border: 2px solid rgba(0, 255, 136, 0.5);
+  top: 40px; left: 40px; transition: none;
+}
+@media (pointer: coarse) { #touch-joystick { display: block; } }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="ui-layer">
+  <div id="hud">
+    <div class="hud-item"><span class="hud-label">LVL</span><span class="hud-val" id="hud-level">1</span></div>
+    <div id="xp-bar-outer"><div id="xp-bar-inner"></div></div>
+    <div class="hud-item"><span class="hud-label">HP</span></div>
+    <div id="hp-bar-outer"><div id="hp-bar-inner"></div></div>
+    <div id="hud-right">
+      <div class="hud-item"><span class="hud-label">KILLS</span><span class="hud-val" id="hud-kills">0</span></div>
+      <div class="hud-item"><span class="hud-label">TIME</span><span class="hud-val" id="hud-time">0:00</span></div>
+      <div class="hud-item"><span class="hud-label">DUMPS</span><span class="hud-val" id="hud-dumps">0</span></div>
+    </div>
+  </div>
+
+  <div id="levelup-overlay">
+    <div id="levelup-title">LEVEL UP</div>
+    <div id="levelup-subtitle">Choose an upgrade:</div>
+    <div id="levelup-choices"></div>
+  </div>
+
+  <div id="death-overlay">
+    <div id="death-title">SEGMENTATION FAULT</div>
+    <div id="death-stats"></div>
+    <div id="prestige-section">
+      <div id="prestige-earned"></div>
+      <div id="prestige-total"></div>
+    </div>
+    <div id="prestige-shop"></div>
+    <button id="restart-btn">REBOOT PROCESS</button>
+  </div>
+
+  <div id="start-overlay">
+    <div id="game-title">MEMORY LEAK</div>
+    <div id="game-tagline">Vampire Survivors meets Computer Science</div>
+    <div id="highscore-display"></div>
+    <button id="start-btn">ALLOCATE PROCESS</button>
+    <div id="controls-info">
+      WASD / Arrow Keys to steer<br>
+      Auto-attack enabled<br>
+      Collect green fragments. Survive the GC.
+    </div>
+  </div>
+
+  <div id="touch-joystick"><div id="touch-joystick-knob"></div></div>
+</div>
+
+<script>
+// ============================================================
+//  MEMORY LEAK - A Vampire Survivors-like browser game
+// ============================================================
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// ---- Resize ----
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ---- Constants ----
+const WORLD_W = 4000;
+const WORLD_H = 4000;
+const GRID_SIZE = 80;
+const FRAG_COUNT_INITIAL = 120;
+const BASE_SPEED = 160;
+const BASE_ATTACK_RANGE = 130;
+const BASE_ATTACK_RATE = 0.8; // attacks per second
+const BASE_ATTACK_DMG = 1;
+const BASE_HP = 5;
+const XP_BASE = 5;
+const XP_SCALE = 1.35;
+const ENEMY_SPAWN_INTERVAL_BASE = 2.0;
+const ENEMY_SPAWN_MIN = 0.3;
+const FRAG_SPAWN_INTERVAL = 0.4;
+const MAX_FRAGMENTS = 400;
+const MAX_ENEMIES = 120;
+const INVULN_TIME = 0.5;
+const CLONE_DURATION = 8;
+
+// ---- Prestige Definitions ----
+const PRESTIGE_UPGRADES = [
+  { id: 'pHP',   name: 'Reinforced Stack',  desc: '+2 starting HP',         cost: 3,  effect: { hp: 2 } },
+  { id: 'pSPD',  name: 'Prefetch',          desc: '+15% move speed',        cost: 3,  effect: { speed: 0.15 } },
+  { id: 'pATK',  name: 'Wider Bus',         desc: '+20% attack range',      cost: 5,  effect: { range: 0.20 } },
+  { id: 'pDMG',  name: 'Overclocked',       desc: '+25% damage',            cost: 5,  effect: { dmg: 0.25 } },
+  { id: 'pXP',   name: 'Memory Mapped',     desc: '+20% XP gain',           cost: 4,  effect: { xp: 0.20 } },
+  { id: 'pRATE', name: 'Pipeline',           desc: '+15% attack speed',      cost: 6,  effect: { rate: 0.15 } },
+  { id: 'pREGN', name: 'ECC Memory',        desc: 'Regen 1 HP every 20s',  cost: 8,  effect: { regen: true } },
+  { id: 'pMAGN', name: 'DMA',               desc: '+30% pickup range',      cost: 4,  effect: { magnet: 0.30 } },
+];
+
+// ---- Upgrade Definitions ----
+const UPGRADES = [
+  { id: 'bufferOverflow', name: 'Buffer Overflow',  icon: '>', desc: '+20% attack range',               rarity: 'common', apply: s => { s.atkRangeMul += 0.20; } },
+  { id: 'memoryPool',     name: 'Memory Pool',      icon: '+', desc: '+1 max HP, heal 1',               rarity: 'common', apply: (s,g) => { s.maxHP += 1; g.player.hp = Math.min(g.player.hp + 1, s.maxHP); } },
+  { id: 'pointerChain',   name: 'Pointer Chain',    icon: '~', desc: 'Attacks chain to 1 nearby enemy', rarity: 'rare',   apply: s => { s.chainCount += 1; }, max: 4 },
+  { id: 'forkBomb',       name: 'Fork Bomb',        icon: 'Y', desc: 'Spawn a clone for 8s',            rarity: 'rare',   apply: (s,g) => { g.spawnClone(); } },
+  { id: 'segfault',       name: 'Segfault',         icon: '!', desc: 'Screen-clearing AoE blast',       rarity: 'epic',   apply: (s,g) => { g.triggerSegfault(); } },
+  { id: 'nullPointer',    name: 'Null Pointer',     icon: '0', desc: 'Phase through enemies for 4s',    rarity: 'rare',   apply: (s,g) => { g.player.phaseTimer = 4; } },
+  { id: 'cacheHit',       name: 'Cache Hit',        icon: '$', desc: '+30% move speed for 8s',          rarity: 'common', apply: (s,g) => { g.player.speedBoostTimer = 8; } },
+  { id: 'stackSmash',     name: 'Stack Smash',      icon: '|', desc: 'Damage all enemies in a line',    rarity: 'rare',   apply: (s,g) => { g.triggerStackSmash(); } },
+  { id: 'heapSpray',      name: 'Heap Spray',       icon: '#', desc: '+25% attack speed',               rarity: 'common', apply: s => { s.atkRateMul += 0.25; } },
+  { id: 'bitShift',       name: 'Bit Shift',        icon: '<', desc: '+15% move speed (permanent)',     rarity: 'common', apply: s => { s.speedMul += 0.15; } },
+  { id: 'doubleFree',     name: 'Double Free',      icon: 'x', desc: '+30% damage',                    rarity: 'rare',   apply: s => { s.dmgMul += 0.30; } },
+  { id: 'magnet',         name: 'Page Fault',       icon: '@', desc: '+40% pickup range',               rarity: 'common', apply: s => { s.magnetMul += 0.40; } },
+];
+
+// ---- Enemy types ----
+const ENEMY_TYPES = {
+  gc: { name: 'GC', color: '#ff4444', radius: 12, hp: 3, speed: 60, dmg: 1, xp: 2 },
+  inspector: { name: 'Inspector', color: '#ff8844', radius: 10, hp: 2, speed: 90, dmg: 1, xp: 2 },
+  defrag: { name: 'Defrag', color: '#ff6622', radius: 16, hp: 6, speed: 40, dmg: 2, xp: 4 },
+  sweeper: { name: 'Sweeper', color: '#ff2266', radius: 14, hp: 8, speed: 50, dmg: 2, xp: 5 },
+  collector: { name: 'Collector', color: '#cc00ff', radius: 20, hp: 15, speed: 35, dmg: 3, xp: 10 },
+};
+
+// ---- Persistence ----
+function loadData() {
+  try {
+    return JSON.parse(localStorage.getItem('memoryleak_save')) || {};
+  } catch { return {}; }
+}
+function saveData(d) {
+  localStorage.setItem('memoryleak_save', JSON.stringify(d));
+}
+
+// ---- Game State ----
+let game = null;
+
+function newGame() {
+  const save = loadData();
+  const coreDumps = save.coreDumps || 0;
+  const owned = save.prestigeOwned || [];
+  const highScore = save.highScore || 0;
+
+  // Calculate prestige bonuses
+  let pBonusHP = 0, pBonusSpeed = 0, pBonusRange = 0, pBonusDmg = 0, pBonusXP = 0, pBonusRate = 0, pRegen = false, pMagnet = 0;
+  for (const id of owned) {
+    const u = PRESTIGE_UPGRADES.find(p => p.id === id);
+    if (!u) continue;
+    if (u.effect.hp) pBonusHP += u.effect.hp;
+    if (u.effect.speed) pBonusSpeed += u.effect.speed;
+    if (u.effect.range) pBonusRange += u.effect.range;
+    if (u.effect.dmg) pBonusDmg += u.effect.dmg;
+    if (u.effect.xp) pBonusXP += u.effect.xp;
+    if (u.effect.rate) pBonusRate += u.effect.rate;
+    if (u.effect.regen) pRegen = true;
+    if (u.effect.magnet) pMagnet += u.effect.magnet;
+  }
+
+  const stats = {
+    maxHP: BASE_HP + pBonusHP,
+    speedMul: 1 + pBonusSpeed,
+    atkRangeMul: 1 + pBonusRange,
+    atkRateMul: 1 + pBonusRate,
+    dmgMul: 1 + pBonusDmg,
+    xpMul: 1 + pBonusXP,
+    magnetMul: 1 + pMagnet,
+    chainCount: 0,
+    hasRegen: pRegen,
+  };
+
+  return {
+    state: 'playing',
+    time: 0,
+    level: 1,
+    xp: 0,
+    xpToNext: XP_BASE,
+    kills: 0,
+    totalFrags: 0,
+    coreDumps: coreDumps,
+    highScore: highScore,
+    stats: stats,
+    upgradesTaken: [],
+    player: {
+      x: WORLD_W / 2,
+      y: WORLD_H / 2,
+      radius: 14,
+      hp: stats.maxHP,
+      dx: 0, dy: -1,
+      atkTimer: 0,
+      invulnTimer: 0,
+      phaseTimer: 0,
+      speedBoostTimer: 0,
+      regenTimer: 0,
+      pulsePhase: 0,
+    },
+    enemies: [],
+    fragments: [],
+    projectiles: [],
+    particles: [],
+    clones: [],
+    damageNumbers: [],
+    screenFlash: 0,
+    screenShake: 0,
+    spawnTimer: 0,
+    fragSpawnTimer: 0,
+    difficulty: 0,
+    camera: { x: 0, y: 0 },
+
+    spawnClone() {
+      const angle = Math.random() * Math.PI * 2;
+      this.clones.push({
+        x: this.player.x + Math.cos(angle) * 40,
+        y: this.player.y + Math.sin(angle) * 40,
+        dx: Math.cos(angle), dy: Math.sin(angle),
+        radius: 10, timer: CLONE_DURATION, atkTimer: 0,
+        pulsePhase: Math.random() * Math.PI * 2,
+      });
+    },
+
+    triggerSegfault() {
+      this.screenFlash = 0.6;
+      this.screenShake = 12;
+      const dmg = Math.ceil(6 * this.stats.dmgMul);
+      for (const e of this.enemies) {
+        e.hp -= dmg;
+        this.spawnHitParticles(e.x, e.y, '#ff44ff', 4);
+        this.damageNumbers.push({ x: e.x, y: e.y - 10, val: dmg, timer: 0.8, color: '#ff44ff' });
+      }
+    },
+
+    triggerStackSmash() {
+      const p = this.player;
+      const dx = p.dx, dy = p.dy;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = dx / len, ny = dy / len;
+      const range = 500;
+      const width = 40;
+      const dmg = Math.ceil(4 * this.stats.dmgMul);
+      for (const e of this.enemies) {
+        const ex = e.x - p.x, ey = e.y - p.y;
+        const proj = ex * nx + ey * ny;
+        if (proj < 0 || proj > range) continue;
+        const perp = Math.abs(ex * (-ny) + ey * nx);
+        if (perp < width) {
+          e.hp -= dmg;
+          this.spawnHitParticles(e.x, e.y, '#00ffff', 3);
+          this.damageNumbers.push({ x: e.x, y: e.y - 10, val: dmg, timer: 0.8, color: '#00ffff' });
+        }
+      }
+      // Visual line
+      for (let i = 0; i < 30; i++) {
+        const t = (i / 30) * range;
+        this.particles.push({
+          x: p.x + nx * t + (Math.random() - 0.5) * 20,
+          y: p.y + ny * t + (Math.random() - 0.5) * 20,
+          vx: (Math.random() - 0.5) * 30, vy: (Math.random() - 0.5) * 30,
+          life: 0.5, maxLife: 0.5, color: '#00ffff', radius: 3,
+        });
+      }
+    },
+
+    spawnHitParticles(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const s = 40 + Math.random() * 80;
+        this.particles.push({
+          x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+          life: 0.3 + Math.random() * 0.3, maxLife: 0.5, color, radius: 2 + Math.random() * 2,
+        });
+      }
+    },
+  };
+}
+
+// ---- Input ----
+const keys = {};
+let touchActive = false;
+let touchDX = 0, touchDY = 0;
+const joystick = document.getElementById('touch-joystick');
+const joystickKnob = document.getElementById('touch-joystick-knob');
+
+window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; e.preventDefault(); });
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// Touch joystick
+let joystickId = null;
+let joystickCenter = { x: 0, y: 0 };
+
+joystick.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  joystickId = t.identifier;
+  const rect = joystick.getBoundingClientRect();
+  joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  touchActive = true;
+});
+
+window.addEventListener('touchmove', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === joystickId) {
+      const dx = t.clientX - joystickCenter.x;
+      const dy = t.clientY - joystickCenter.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxR = 40;
+      const clamp = Math.min(dist, maxR);
+      const nx = dist > 0 ? dx / dist : 0;
+      const ny = dist > 0 ? dy / dist : 0;
+      touchDX = nx * (clamp / maxR);
+      touchDY = ny * (clamp / maxR);
+      joystickKnob.style.left = (40 + nx * clamp) + 'px';
+      joystickKnob.style.top = (40 + ny * clamp) + 'px';
+    }
+  }
+});
+
+window.addEventListener('touchend', e => {
+  for (const t of e.changedTouches) {
+    if (t.identifier === joystickId) {
+      joystickId = null;
+      touchActive = false;
+      touchDX = 0; touchDY = 0;
+      joystickKnob.style.left = '40px';
+      joystickKnob.style.top = '40px';
+    }
+  }
+});
+
+function getInputDir() {
+  let dx = 0, dy = 0;
+  if (keys['w'] || keys['arrowup']) dy -= 1;
+  if (keys['s'] || keys['arrowdown']) dy += 1;
+  if (keys['a'] || keys['arrowleft']) dx -= 1;
+  if (keys['d'] || keys['arrowright']) dx += 1;
+  if (touchActive) { dx += touchDX; dy += touchDY; }
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len > 0) return { x: dx / len, y: dy / len };
+  return null;
+}
+
+// ---- Spawning ----
+function spawnFragment(g) {
+  if (g.fragments.length >= MAX_FRAGMENTS) return;
+  // Spawn near player but not too close
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 200 + Math.random() * 600;
+  let x = g.player.x + Math.cos(angle) * dist;
+  let y = g.player.y + Math.sin(angle) * dist;
+  x = Math.max(20, Math.min(WORLD_W - 20, x));
+  y = Math.max(20, Math.min(WORLD_H - 20, y));
+  const isCyan = Math.random() < 0.15;
+  g.fragments.push({ x, y, radius: isCyan ? 5 : 3, xp: isCyan ? 3 : 1, color: isCyan ? '#00ffff' : '#00ff88', pulse: Math.random() * Math.PI * 2 });
+}
+
+function spawnEnemy(g) {
+  if (g.enemies.length >= MAX_ENEMIES) return;
+  // Pick type based on difficulty
+  const d = g.difficulty;
+  let types = ['gc', 'gc', 'inspector'];
+  if (d > 30) types.push('defrag', 'inspector');
+  if (d > 60) types.push('sweeper', 'defrag');
+  if (d > 120) types.push('collector', 'sweeper');
+  const typeKey = types[Math.floor(Math.random() * types.length)];
+  const etype = ENEMY_TYPES[typeKey];
+
+  // Spawn outside screen
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 500 + Math.random() * 200;
+  let x = g.player.x + Math.cos(angle) * dist;
+  let y = g.player.y + Math.sin(angle) * dist;
+  x = Math.max(20, Math.min(WORLD_W - 20, x));
+  y = Math.max(20, Math.min(WORLD_H - 20, y));
+
+  const hpScale = 1 + d * 0.008;
+  const spdScale = 1 + d * 0.003;
+
+  g.enemies.push({
+    x, y, type: typeKey,
+    radius: etype.radius,
+    hp: Math.ceil(etype.hp * hpScale),
+    maxHP: Math.ceil(etype.hp * hpScale),
+    speed: etype.speed * spdScale,
+    dmg: etype.dmg,
+    xp: etype.xp,
+    color: etype.color,
+    hitFlash: 0,
+  });
+}
+
+function spawnInitialFragments(g) {
+  for (let i = 0; i < FRAG_COUNT_INITIAL; i++) {
+    g.fragments.push({
+      x: Math.random() * WORLD_W,
+      y: Math.random() * WORLD_H,
+      radius: Math.random() < 0.15 ? 5 : 3,
+      xp: Math.random() < 0.15 ? 3 : 1,
+      color: Math.random() < 0.15 ? '#00ffff' : '#00ff88',
+      pulse: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+// ---- Auto-Attack ----
+function doAttack(g, sourceX, sourceY, sourceDX, sourceDY, isClone) {
+  const range = BASE_ATTACK_RANGE * g.stats.atkRangeMul;
+  const dmg = Math.ceil(BASE_ATTACK_DMG * g.stats.dmgMul);
+  let closestEnemy = null;
+  let closestDist = range;
+
+  for (const e of g.enemies) {
+    const dx = e.x - sourceX, dy = e.y - sourceY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestEnemy = e;
+    }
+  }
+
+  if (!closestEnemy) return;
+
+  // Create projectile
+  const dx = closestEnemy.x - sourceX;
+  const dy = closestEnemy.y - sourceY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  g.projectiles.push({
+    x: sourceX, y: sourceY,
+    tx: closestEnemy.x, ty: closestEnemy.y,
+    vx: (dx / dist) * 400, vy: (dy / dist) * 400,
+    dmg, radius: 4, life: 0.5, chain: isClone ? 0 : g.stats.chainCount,
+    color: isClone ? '#88ff88' : '#00ff88',
+  });
+}
+
+// ---- Level Up ----
+function showLevelUp(g) {
+  g.state = 'levelup';
+  const overlay = document.getElementById('levelup-overlay');
+  const choices = document.getElementById('levelup-choices');
+  choices.innerHTML = '';
+
+  // Pick 3 random unique upgrades
+  const available = [...UPGRADES];
+  const picked = [];
+  while (picked.length < 3 && available.length > 0) {
+    const idx = Math.floor(Math.random() * available.length);
+    // Check max stacks
+    const up = available[idx];
+    if (up.max) {
+      const count = g.upgradesTaken.filter(u => u === up.id).length;
+      if (count >= up.max) { available.splice(idx, 1); continue; }
+    }
+    picked.push(available.splice(idx, 1)[0]);
+  }
+
+  for (const up of picked) {
+    const card = document.createElement('div');
+    card.className = `upgrade-card upgrade-rarity-${up.rarity}`;
+    card.innerHTML = `
+      <div class="upgrade-icon" style="font-family:monospace;color:${up.rarity === 'epic' ? '#aa44ff' : up.rarity === 'rare' ? '#44aaff' : '#00ff88'}">[${up.icon}]</div>
+      <div class="upgrade-name">${up.name}</div>
+      <div class="upgrade-desc">${up.desc}</div>
+    `;
+    card.addEventListener('click', () => {
+      up.apply(g.stats, g);
+      g.upgradesTaken.push(up.id);
+      overlay.classList.remove('active');
+      g.state = 'playing';
+      g.screenFlash = 0.3;
+    });
+    choices.appendChild(card);
+  }
+
+  overlay.classList.add('active');
+}
+
+// ---- Death ----
+function showDeath(g) {
+  g.state = 'dead';
+  const overlay = document.getElementById('death-overlay');
+  const statsEl = document.getElementById('death-stats');
+  const earnedEl = document.getElementById('prestige-earned');
+  const totalEl = document.getElementById('prestige-total');
+  const shopEl = document.getElementById('prestige-shop');
+
+  const minutes = Math.floor(g.time / 60);
+  const seconds = Math.floor(g.time % 60);
+  const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+  // Core dumps earned = level/2 + kills/20 + time/60
+  const earned = Math.max(1, Math.floor(g.level / 2) + Math.floor(g.kills / 20) + Math.floor(g.time / 60));
+  g.coreDumps += earned;
+
+  const save = loadData();
+  save.coreDumps = g.coreDumps;
+  if (g.time > (save.highScore || 0)) save.highScore = g.time;
+  if (!save.prestigeOwned) save.prestigeOwned = [];
+  saveData(save);
+
+  statsEl.innerHTML = `
+    Survived: <span>${timeStr}</span><br>
+    Level reached: <span>${g.level}</span><br>
+    Enemies terminated: <span>${g.kills}</span><br>
+    Memory collected: <span>${g.totalFrags}</span>
+  `;
+  earnedEl.textContent = `+${earned} Core Dumps`;
+  totalEl.textContent = `Total: ${g.coreDumps} Core Dumps`;
+
+  shopEl.innerHTML = '';
+  for (const pu of PRESTIGE_UPGRADES) {
+    const isOwned = save.prestigeOwned.includes(pu.id);
+    const canAfford = g.coreDumps >= pu.cost;
+    const item = document.createElement('div');
+    item.className = 'prestige-item' + (isOwned ? ' owned' : '');
+    item.innerHTML = `
+      <div class="prestige-name">${pu.name}</div>
+      <div class="prestige-desc">${pu.desc}</div>
+      <div class="prestige-cost">${isOwned ? 'OWNED' : pu.cost + ' Dumps'}</div>
+    `;
+    if (!isOwned && canAfford) {
+      item.addEventListener('click', () => {
+        g.coreDumps -= pu.cost;
+        const s = loadData();
+        s.coreDumps = g.coreDumps;
+        s.prestigeOwned = s.prestigeOwned || [];
+        s.prestigeOwned.push(pu.id);
+        saveData(s);
+        totalEl.textContent = `Total: ${g.coreDumps} Core Dumps`;
+        item.classList.add('owned');
+        item.querySelector('.prestige-cost').textContent = 'OWNED';
+        // Refresh affordability
+        for (const child of shopEl.children) {
+          const costText = child.querySelector('.prestige-cost').textContent;
+          if (costText !== 'OWNED') {
+            const c = parseInt(costText);
+            if (c > g.coreDumps) child.style.opacity = '0.4';
+          }
+        }
+      });
+    } else if (!isOwned && !canAfford) {
+      item.style.opacity = '0.4';
+      item.style.cursor = 'default';
+    }
+    shopEl.appendChild(item);
+  }
+
+  overlay.classList.add('active');
+}
+
+// ---- Update ----
+function update(dt) {
+  if (!game || game.state !== 'playing') return;
+  const g = game;
+  const p = g.player;
+
+  g.time += dt;
+  g.difficulty = g.time;
+
+  // Input
+  const dir = getInputDir();
+  if (dir) { p.dx = dir.x; p.dy = dir.y; }
+
+  // Movement (auto-move in current direction)
+  const speed = BASE_SPEED * g.stats.speedMul * (p.speedBoostTimer > 0 ? 1.3 : 1);
+  p.x += p.dx * speed * dt;
+  p.y += p.dy * speed * dt;
+  p.x = Math.max(p.radius, Math.min(WORLD_W - p.radius, p.x));
+  p.y = Math.max(p.radius, Math.min(WORLD_H - p.radius, p.y));
+
+  // Timers
+  p.invulnTimer = Math.max(0, p.invulnTimer - dt);
+  p.phaseTimer = Math.max(0, p.phaseTimer - dt);
+  p.speedBoostTimer = Math.max(0, p.speedBoostTimer - dt);
+  p.pulsePhase += dt * 4;
+  g.screenFlash = Math.max(0, g.screenFlash - dt * 2);
+  g.screenShake = Math.max(0, g.screenShake - dt * 20);
+
+  // Regen
+  if (g.stats.hasRegen) {
+    p.regenTimer += dt;
+    if (p.regenTimer >= 20) {
+      p.regenTimer = 0;
+      p.hp = Math.min(p.hp + 1, g.stats.maxHP);
+    }
+  }
+
+  // Auto-attack
+  const atkInterval = 1 / (BASE_ATTACK_RATE * g.stats.atkRateMul);
+  p.atkTimer += dt;
+  if (p.atkTimer >= atkInterval) {
+    p.atkTimer -= atkInterval;
+    doAttack(g, p.x, p.y, p.dx, p.dy, false);
+  }
+
+  // Clone updates
+  for (let i = g.clones.length - 1; i >= 0; i--) {
+    const c = g.clones[i];
+    c.timer -= dt;
+    c.pulsePhase += dt * 4;
+    // Circle around player
+    const angle = Math.atan2(c.y - p.y, c.x - p.x) + dt * 1.5;
+    const dist = 60;
+    c.x = p.x + Math.cos(angle) * dist;
+    c.y = p.y + Math.sin(angle) * dist;
+    c.atkTimer += dt;
+    if (c.atkTimer >= atkInterval * 1.2) {
+      c.atkTimer -= atkInterval * 1.2;
+      doAttack(g, c.x, c.y, c.dx, c.dy, true);
+    }
+    if (c.timer <= 0) g.clones.splice(i, 1);
+  }
+
+  // Projectiles
+  for (let i = g.projectiles.length - 1; i >= 0; i--) {
+    const pr = g.projectiles[i];
+    pr.x += pr.vx * dt;
+    pr.y += pr.vy * dt;
+    pr.life -= dt;
+    if (pr.life <= 0) { g.projectiles.splice(i, 1); continue; }
+
+    // Hit enemies
+    let hit = false;
+    for (const e of g.enemies) {
+      const dx = pr.x - e.x, dy = pr.y - e.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < pr.radius + e.radius) {
+        e.hp -= pr.dmg;
+        e.hitFlash = 0.1;
+        g.spawnHitParticles(e.x, e.y, pr.color, 3);
+        g.damageNumbers.push({ x: e.x, y: e.y - e.radius - 5, val: pr.dmg, timer: 0.6, color: pr.color });
+
+        // Chain
+        if (pr.chain > 0) {
+          let nextEnemy = null, nextDist = BASE_ATTACK_RANGE * g.stats.atkRangeMul;
+          for (const e2 of g.enemies) {
+            if (e2 === e) continue;
+            const d = Math.sqrt((e2.x - e.x) ** 2 + (e2.y - e.y) ** 2);
+            if (d < nextDist) { nextDist = d; nextEnemy = e2; }
+          }
+          if (nextEnemy) {
+            const cdx = nextEnemy.x - e.x, cdy = nextEnemy.y - e.y;
+            const cd = Math.sqrt(cdx * cdx + cdy * cdy) || 1;
+            g.projectiles.push({
+              x: e.x, y: e.y, tx: nextEnemy.x, ty: nextEnemy.y,
+              vx: (cdx / cd) * 400, vy: (cdy / cd) * 400,
+              dmg: pr.dmg, radius: 3, life: 0.4, chain: pr.chain - 1, color: '#44aaff',
+            });
+          }
+        }
+        hit = true;
+        break;
+      }
+    }
+    if (hit) g.projectiles.splice(i, 1);
+  }
+
+  // Enemy AI
+  for (const e of g.enemies) {
+    e.hitFlash = Math.max(0, e.hitFlash - dt);
+    const dx = p.x - e.x, dy = p.y - e.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 1) {
+      e.x += (dx / dist) * e.speed * dt;
+      e.y += (dy / dist) * e.speed * dt;
+    }
+    // Collision with player
+    if (p.phaseTimer <= 0 && p.invulnTimer <= 0 && dist < p.radius + e.radius) {
+      p.hp -= e.dmg;
+      p.invulnTimer = INVULN_TIME;
+      g.screenShake = 6;
+      g.spawnHitParticles(p.x, p.y, '#ff4444', 6);
+      if (p.hp <= 0) {
+        showDeath(g);
+        return;
+      }
+    }
+  }
+
+  // Remove dead enemies
+  for (let i = g.enemies.length - 1; i >= 0; i--) {
+    if (g.enemies[i].hp <= 0) {
+      const e = g.enemies[i];
+      g.kills++;
+      const xpGain = Math.ceil(e.xp * g.stats.xpMul);
+      g.xp += xpGain;
+      // Death particles
+      for (let j = 0; j < 8; j++) {
+        const a = Math.random() * Math.PI * 2;
+        const s = 60 + Math.random() * 100;
+        g.particles.push({
+          x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+          life: 0.4 + Math.random() * 0.3, maxLife: 0.6, color: e.color, radius: 3,
+        });
+      }
+      // Drop fragments
+      if (Math.random() < 0.4) {
+        g.fragments.push({ x: e.x, y: e.y, radius: 5, xp: 3, color: '#00ffff', pulse: 0 });
+      }
+      g.enemies.splice(i, 1);
+    }
+  }
+
+  // Collect fragments
+  const magnetRange = 60 * g.stats.magnetMul;
+  const collectRange = 18;
+  for (let i = g.fragments.length - 1; i >= 0; i--) {
+    const f = g.fragments[i];
+    f.pulse += dt * 3;
+    const dx = p.x - f.x, dy = p.y - f.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    // Magnet pull
+    if (dist < magnetRange && dist > collectRange) {
+      const pull = 200 * dt;
+      f.x += (dx / dist) * pull;
+      f.y += (dy / dist) * pull;
+    }
+    if (dist < collectRange) {
+      const xpGain = Math.ceil(f.xp * g.stats.xpMul);
+      g.xp += xpGain;
+      g.totalFrags++;
+      // Collect particle
+      g.particles.push({
+        x: f.x, y: f.y, vx: 0, vy: -40,
+        life: 0.3, maxLife: 0.3, color: f.color, radius: f.radius,
+      });
+      g.fragments.splice(i, 1);
+    }
+  }
+
+  // Level up check
+  while (g.xp >= g.xpToNext) {
+    g.xp -= g.xpToNext;
+    g.level++;
+    g.xpToNext = Math.floor(XP_BASE * Math.pow(XP_SCALE, g.level - 1));
+    g.screenFlash = 0.4;
+    showLevelUp(g);
+    return;
+  }
+
+  // Spawn enemies
+  const spawnInterval = Math.max(ENEMY_SPAWN_MIN, ENEMY_SPAWN_INTERVAL_BASE - g.difficulty * 0.008);
+  g.spawnTimer += dt;
+  // Burst spawns at difficulty milestones
+  const spawnCount = g.difficulty > 120 ? 3 : g.difficulty > 60 ? 2 : 1;
+  if (g.spawnTimer >= spawnInterval) {
+    g.spawnTimer -= spawnInterval;
+    for (let i = 0; i < spawnCount; i++) spawnEnemy(g);
+  }
+
+  // Spawn fragments
+  g.fragSpawnTimer += dt;
+  if (g.fragSpawnTimer >= FRAG_SPAWN_INTERVAL) {
+    g.fragSpawnTimer -= FRAG_SPAWN_INTERVAL;
+    spawnFragment(g);
+  }
+
+  // Particles
+  for (let i = g.particles.length - 1; i >= 0; i--) {
+    const pt = g.particles[i];
+    pt.x += pt.vx * dt;
+    pt.y += pt.vy * dt;
+    pt.life -= dt;
+    if (pt.life <= 0) g.particles.splice(i, 1);
+  }
+
+  // Damage numbers
+  for (let i = g.damageNumbers.length - 1; i >= 0; i--) {
+    const dn = g.damageNumbers[i];
+    dn.y -= 40 * dt;
+    dn.timer -= dt;
+    if (dn.timer <= 0) g.damageNumbers.splice(i, 1);
+  }
+
+  // Update HUD
+  document.getElementById('hud-level').textContent = g.level;
+  document.getElementById('hud-kills').textContent = g.kills;
+  const min = Math.floor(g.time / 60);
+  const sec = Math.floor(g.time % 60);
+  document.getElementById('hud-time').textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+  document.getElementById('hud-dumps').textContent = g.coreDumps;
+  document.getElementById('xp-bar-inner').style.width = (g.xp / g.xpToNext * 100) + '%';
+  document.getElementById('hp-bar-inner').style.width = (p.hp / g.stats.maxHP * 100) + '%';
+}
+
+// ---- Render ----
+function render() {
+  if (!game) return;
+  const g = game;
+  const p = g.player;
+  const W = canvas.width, H = canvas.height;
+
+  // Camera
+  g.camera.x = p.x - W / 2;
+  g.camera.y = p.y - H / 2;
+
+  // Screen shake
+  let shakeX = 0, shakeY = 0;
+  if (g.screenShake > 0) {
+    shakeX = (Math.random() - 0.5) * g.screenShake * 2;
+    shakeY = (Math.random() - 0.5) * g.screenShake * 2;
+  }
+
+  ctx.save();
+  ctx.translate(-g.camera.x + shakeX, -g.camera.y + shakeY);
+
+  // Background
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(g.camera.x - 10, g.camera.y - 10, W + 20, H + 20);
+
+  // Grid
+  ctx.strokeStyle = '#111118';
+  ctx.lineWidth = 1;
+  const startX = Math.floor((g.camera.x) / GRID_SIZE) * GRID_SIZE;
+  const startY = Math.floor((g.camera.y) / GRID_SIZE) * GRID_SIZE;
+  for (let x = startX; x < g.camera.x + W + GRID_SIZE; x += GRID_SIZE) {
+    ctx.beginPath(); ctx.moveTo(x, g.camera.y); ctx.lineTo(x, g.camera.y + H); ctx.stroke();
+  }
+  for (let y = startY; y < g.camera.y + H + GRID_SIZE; y += GRID_SIZE) {
+    ctx.beginPath(); ctx.moveTo(g.camera.x, y); ctx.lineTo(g.camera.x + W, y); ctx.stroke();
+  }
+
+  // Memory address labels (subtle)
+  ctx.fillStyle = '#181828';
+  ctx.font = '9px monospace';
+  for (let x = startX; x < g.camera.x + W + GRID_SIZE; x += GRID_SIZE * 2) {
+    for (let y = startY; y < g.camera.y + H + GRID_SIZE; y += GRID_SIZE * 2) {
+      const addr = ((Math.floor(x / GRID_SIZE) * 137 + Math.floor(y / GRID_SIZE) * 97) & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+      ctx.fillText('0x' + addr, x + 4, y + 12);
+    }
+  }
+
+  // World boundary
+  ctx.strokeStyle = '#330000';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(0, 0, WORLD_W, WORLD_H);
+
+  // Fragments
+  for (const f of g.fragments) {
+    const sx = f.x - g.camera.x, sy = f.y - g.camera.y;
+    if (sx < -20 || sx > W + 20 || sy < -20 || sy > H + 20) continue;
+    const pulseR = f.radius + Math.sin(f.pulse) * 1;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, pulseR, 0, Math.PI * 2);
+    ctx.fillStyle = f.color;
+    ctx.globalAlpha = 0.6 + Math.sin(f.pulse) * 0.3;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    // Glow
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, pulseR + 4, 0, Math.PI * 2);
+    const grd = ctx.createRadialGradient(f.x, f.y, pulseR, f.x, f.y, pulseR + 4);
+    grd.addColorStop(0, f.color + '44');
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+
+  // Enemies
+  for (const e of g.enemies) {
+    const sx = e.x - g.camera.x, sy = e.y - g.camera.y;
+    if (sx < -40 || sx > W + 40 || sy < -40 || sy > H + 40) continue;
+
+    // Body
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+    ctx.fillStyle = e.hitFlash > 0 ? '#ffffff' : e.color;
+    ctx.fill();
+
+    // Inner pattern
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#000000';
+    ctx.globalAlpha = 0.3;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Glow
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius + 6, 0, Math.PI * 2);
+    const egrd = ctx.createRadialGradient(e.x, e.y, e.radius, e.x, e.y, e.radius + 6);
+    egrd.addColorStop(0, e.color + '33');
+    egrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = egrd;
+    ctx.fill();
+
+    // HP bar (for tough enemies)
+    if (e.maxHP > 3 && e.hp < e.maxHP) {
+      const bw = e.radius * 2;
+      const bh = 3;
+      const bx = e.x - bw / 2;
+      const by = e.y - e.radius - 8;
+      ctx.fillStyle = '#330000';
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.fillStyle = '#ff4444';
+      ctx.fillRect(bx, by, bw * (e.hp / e.maxHP), bh);
+    }
+
+    // Label
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = 0.5;
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(ENEMY_TYPES[e.type].name.toUpperCase(), e.x, e.y + e.radius + 12);
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left';
+  }
+
+  // Projectiles
+  for (const pr of g.projectiles) {
+    ctx.beginPath();
+    ctx.arc(pr.x, pr.y, pr.radius, 0, Math.PI * 2);
+    ctx.fillStyle = pr.color;
+    ctx.fill();
+    // Trail
+    ctx.beginPath();
+    ctx.arc(pr.x, pr.y, pr.radius + 3, 0, Math.PI * 2);
+    const pgrd = ctx.createRadialGradient(pr.x, pr.y, pr.radius, pr.x, pr.y, pr.radius + 3);
+    pgrd.addColorStop(0, pr.color + '66');
+    pgrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = pgrd;
+    ctx.fill();
+  }
+
+  // Particles
+  for (const pt of g.particles) {
+    ctx.globalAlpha = pt.life / pt.maxLife;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, pt.radius * (pt.life / pt.maxLife), 0, Math.PI * 2);
+    ctx.fillStyle = pt.color;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Damage numbers
+  ctx.textAlign = 'center';
+  for (const dn of g.damageNumbers) {
+    ctx.globalAlpha = Math.min(1, dn.timer * 2);
+    ctx.font = 'bold 14px monospace';
+    ctx.fillStyle = dn.color;
+    ctx.fillText(dn.val, dn.x, dn.y);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'left';
+
+  // Clones
+  for (const c of g.clones) {
+    const alpha = Math.min(1, c.timer / 2);
+    ctx.globalAlpha = alpha * (0.5 + Math.sin(c.pulsePhase) * 0.2);
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#88ff88';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.radius + 6, 0, Math.PI * 2);
+    const cgrd = ctx.createRadialGradient(c.x, c.y, c.radius, c.x, c.y, c.radius + 6);
+    cgrd.addColorStop(0, '#88ff8844');
+    cgrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = cgrd;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Player
+  const playerAlpha = p.invulnTimer > 0 ? (Math.sin(g.time * 20) > 0 ? 0.4 : 0.9) : 1;
+  ctx.globalAlpha = p.phaseTimer > 0 ? 0.4 : playerAlpha;
+
+  // Player outer glow
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.radius + 12 + Math.sin(p.pulsePhase) * 3, 0, Math.PI * 2);
+  const pGlow = ctx.createRadialGradient(p.x, p.y, p.radius, p.x, p.y, p.radius + 12 + Math.sin(p.pulsePhase) * 3);
+  pGlow.addColorStop(0, p.phaseTimer > 0 ? '#4444ff33' : '#00ff8833');
+  pGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = pGlow;
+  ctx.fill();
+
+  // Attack range indicator (subtle)
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, BASE_ATTACK_RANGE * g.stats.atkRangeMul, 0, Math.PI * 2);
+  ctx.strokeStyle = '#00ff8808';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Player body
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+  ctx.fillStyle = p.phaseTimer > 0 ? '#4444ff' : '#00ff88';
+  ctx.fill();
+
+  // Player inner detail
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.radius * 0.4, 0, Math.PI * 2);
+  ctx.fillStyle = '#aaffcc';
+  ctx.fill();
+
+  // Direction indicator
+  ctx.beginPath();
+  ctx.moveTo(p.x + p.dx * (p.radius + 4), p.y + p.dy * (p.radius + 4));
+  ctx.lineTo(p.x + p.dx * (p.radius + 10), p.y + p.dy * (p.radius + 10));
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // Screen flash overlay
+  if (g.screenFlash > 0) {
+    ctx.fillStyle = `rgba(0, 255, 136, ${g.screenFlash * 0.3})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Minimap
+  const mmW = 120, mmH = 120, mmPad = 10;
+  const mmX = W - mmW - mmPad, mmY = H - mmH - mmPad;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(mmX, mmY, mmW, mmH);
+  ctx.strokeStyle = '#00aa4444';
+  ctx.strokeRect(mmX, mmY, mmW, mmH);
+
+  // Minimap enemies
+  ctx.fillStyle = '#ff444488';
+  for (const e of g.enemies) {
+    const mx = mmX + (e.x / WORLD_W) * mmW;
+    const my = mmY + (e.y / WORLD_H) * mmH;
+    ctx.fillRect(mx - 1, my - 1, 2, 2);
+  }
+
+  // Minimap player
+  ctx.fillStyle = '#00ff88';
+  const pmx = mmX + (p.x / WORLD_W) * mmW;
+  const pmy = mmY + (p.y / WORLD_H) * mmH;
+  ctx.fillRect(pmx - 2, pmy - 2, 4, 4);
+
+  // Minimap viewport
+  ctx.strokeStyle = '#00ff8844';
+  const vx = mmX + (g.camera.x / WORLD_W) * mmW;
+  const vy = mmY + (g.camera.y / WORLD_H) * mmH;
+  const vw = (W / WORLD_W) * mmW;
+  const vh = (H / WORLD_H) * mmH;
+  ctx.strokeRect(vx, vy, vw, vh);
+}
+
+// ---- Game Loop ----
+let lastTime = 0;
+
+function gameLoop(timestamp) {
+  const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+  lastTime = timestamp;
+
+  update(dt);
+  render();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ---- Start / Restart ----
+function startGame() {
+  document.getElementById('start-overlay').classList.add('hidden');
+  document.getElementById('death-overlay').classList.remove('active');
+  document.getElementById('levelup-overlay').classList.remove('active');
+
+  game = newGame();
+  spawnInitialFragments(game);
+}
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('restart-btn').addEventListener('click', startGame);
+
+// Keyboard shortcuts
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    if (game && game.state === 'dead') {
+      startGame();
+      e.preventDefault();
+    } else if (!game || document.getElementById('start-overlay').classList.contains('hidden') === false) {
+      startGame();
+      e.preventDefault();
+    }
+  }
+});
+
+// Show high score on start screen
+const save = loadData();
+if (save.highScore) {
+  const m = Math.floor(save.highScore / 60);
+  const s = Math.floor(save.highScore % 60);
+  document.getElementById('highscore-display').textContent = `Best: ${m}:${s.toString().padStart(2, '0')} | Core Dumps: ${save.coreDumps || 0}`;
+}
+
+// Kick off render loop
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
