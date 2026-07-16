@@ -2,22 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="darkreader-lock">
+<meta name="color-scheme" content="dark">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>PACKET STORM</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+:root{--mono:ui-monospace,'SF Mono','Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;--acc:#00ff42}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Share Tech Mono',monospace;color:#0f0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:var(--mono);color:var(--acc);-webkit-tap-highlight-color:transparent}
 canvas{display:block;position:absolute;top:0;left:0;width:100%;height:100%}
 #ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
-#typing-area{position:absolute;bottom:0;left:0;width:100%;pointer-events:auto;z-index:20}
-#target-display{width:100%;padding:6px 16px;background:rgba(0,20,0,0.95);border-top:1px solid #050;color:#0a0;font-family:'Share Tech Mono',monospace;font-size:14px;text-align:center;display:none;letter-spacing:1px}
-#target-display .target-text{color:#0f0;font-weight:bold}
-#target-display .target-matched{color:#000;background:#0f0;padding:0 1px}
-#typing-input{width:100%;padding:12px 16px 12px 32px;background:rgba(0,20,0,0.92);border:none;border-top:2px solid #0a0;color:#0f0;font-family:'Share Tech Mono',monospace;font-size:18px;outline:none;caret-color:#0f0;letter-spacing:1px}
+#typing-area{position:absolute;bottom:0;left:0;width:100%;pointer-events:auto;z-index:20;padding-bottom:env(safe-area-inset-bottom,0)}
+#target-display{width:100%;padding:6px clamp(8px,3vw,16px);background:rgba(0,20,0,0.95);border-top:1px solid #050;color:#0a0;font-family:var(--mono);font-size:clamp(11px,2.6vw,14px);text-align:center;display:none;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#target-display .target-text{color:var(--acc);font-weight:bold}
+#target-display .target-matched{color:#000;background:var(--acc);padding:0 1px}
+#typing-input{width:100%;min-height:44px;padding:12px 16px 12px 32px;background:rgba(0,20,0,0.92);border:none;border-top:2px solid #0a0;color:var(--acc);font-family:var(--mono);font-size:clamp(16px,2.5vw,18px);outline:none;caret-color:var(--acc);letter-spacing:1px}
 #typing-input::placeholder{color:#050}
-#typing-input:focus{border-top-color:#0f0}
-.prompt-symbol{position:absolute;bottom:12px;left:8px;color:#0a0;font-size:18px;z-index:21;pointer-events:none}
+#typing-input:focus{border-top-color:var(--acc)}
+.prompt-symbol{position:absolute;bottom:calc(12px + env(safe-area-inset-bottom,0));left:8px;color:#0a0;font-size:clamp(16px,2.5vw,18px);z-index:21;pointer-events:none}
 
 /* Scanline overlay */
 #scanlines{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;
@@ -30,38 +32,42 @@ background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0
 #flash.damage{background:rgba(255,0,0,0.12)}
 
 /* HUD */
-#hud{position:absolute;top:0;left:0;width:100%;padding:8px 14px;display:flex;justify-content:space-between;align-items:flex-start;z-index:12;pointer-events:none;font-size:13px}
-#hud-left,#hud-right{display:flex;flex-direction:column;gap:4px}
-#hud-right{align-items:flex-end}
-.hud-label{color:#050;font-size:11px;text-transform:uppercase;letter-spacing:2px}
-.hud-value{color:#0f0;font-size:16px}
+#hud{position:absolute;top:0;left:0;width:100%;padding:clamp(4px,1.2vh,8px) clamp(8px,2.5vw,14px);padding-top:calc(clamp(4px,1.2vh,8px) + env(safe-area-inset-top,0));display:flex;justify-content:space-between;align-items:flex-start;gap:8px;z-index:12;pointer-events:none;font-size:clamp(10px,2.2vw,13px)}
+#hud-left,#hud-right{display:flex;flex-direction:column;gap:4px;min-width:0}
+#hud-left{overflow:hidden}
+#hud-left>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hud-right{align-items:flex-end;flex-shrink:0}
+.hud-label{color:#050;font-size:clamp(9px,1.8vw,11px);text-transform:uppercase;letter-spacing:2px}
+.hud-value{color:var(--acc);font-size:clamp(12px,2.8vw,16px)}
 .hud-value.combo{color:#ff0;text-shadow:0 0 8px #ff0}
 .hud-value.danger{color:#f44;text-shadow:0 0 8px #f44;animation:pulse 0.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 
 /* Menu screens */
-.menu-screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:rgba(0,0,0,0.95);pointer-events:auto}
+.menu-screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;z-index:30;background:rgba(0,0,0,0.95);pointer-events:auto;overflow-y:auto;padding:clamp(10px,3vh,24px) clamp(8px,3vw,24px)}
+.menu-screen>:first-child{margin-top:auto}
+.menu-screen>:last-child{margin-bottom:auto}
 .menu-screen.hidden{display:none}
-.menu-title{font-size:clamp(28px,6vw,52px);color:#0f0;text-shadow:0 0 20px #0f0,0 0 40px #0a0;margin-bottom:8px;letter-spacing:4px}
-.menu-subtitle{font-size:clamp(12px,2.5vw,16px);color:#0a0;margin-bottom:30px;letter-spacing:2px}
-.menu-btn{background:transparent;border:2px solid #0a0;color:#0f0;font-family:'Share Tech Mono',monospace;font-size:clamp(14px,2.5vw,18px);padding:12px 32px;margin:6px;cursor:pointer;letter-spacing:2px;transition:all 0.15s;pointer-events:auto;min-width:220px;text-align:center}
+.menu-title{font-size:clamp(24px,6vw,52px);color:var(--acc);text-shadow:0 0 20px var(--acc),0 0 40px #0a0;margin-bottom:8px;letter-spacing:4px;text-align:center}
+.menu-subtitle{font-size:clamp(12px,2.5vw,16px);color:#0a0;margin-bottom:clamp(14px,4vh,30px);letter-spacing:2px;text-align:center}
+.menu-btn{background:transparent;border:2px solid #0a0;color:var(--acc);font-family:var(--mono);font-size:clamp(14px,2.5vw,18px);padding:12px 32px;margin:6px;min-height:44px;cursor:pointer;letter-spacing:2px;transition:all 0.15s;pointer-events:auto;min-width:min(220px,80vw);max-width:100%;text-align:center}
 .menu-btn:hover,.menu-btn:focus{background:#0a0;color:#000;text-shadow:none;box-shadow:0 0 15px #0a0;outline:none}
 .menu-btn.daily{border-color:#ff0;color:#ff0}
 .menu-btn.daily:hover{background:#ff0;color:#000;box-shadow:0 0 15px #ff0}
-.menu-info{font-size:12px;color:#050;margin-top:20px;text-align:center;line-height:1.6}
-.menu-stats{display:flex;gap:30px;margin:16px 0;flex-wrap:wrap;justify-content:center}
+.menu-info{font-size:clamp(11px,2.2vw,12px);color:#050;margin-top:clamp(10px,3vh,20px);text-align:center;line-height:1.6;padding:0 8px}
+.menu-stats{display:flex;gap:clamp(16px,5vw,30px);margin:clamp(8px,2.5vh,16px) 0;flex-wrap:wrap;justify-content:center}
 .stat-box{text-align:center}
-.stat-val{font-size:22px;color:#0f0}
+.stat-val{font-size:clamp(16px,4vw,22px);color:var(--acc)}
 .stat-lbl{font-size:10px;color:#050;letter-spacing:2px}
 
 /* Upgrade shop */
 #shop-screen .menu-title{font-size:clamp(22px,4.5vw,36px);margin-bottom:16px}
-.upgrades-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:700px;padding:0 10px;margin-bottom:16px}
-.upgrade-card{border:1px solid #0a0;padding:12px;width:clamp(140px,30vw,200px);text-align:center;cursor:pointer;transition:all 0.15s;pointer-events:auto;position:relative}
-.upgrade-card:hover{border-color:#0f0;box-shadow:0 0 10px rgba(0,255,0,0.3)}
+.upgrades-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:min(700px,100%);padding:0 10px;margin-bottom:16px}
+.upgrade-card{border:1px solid #0a0;padding:12px;width:clamp(140px,42vw,200px);min-height:44px;text-align:center;cursor:pointer;transition:all 0.15s;pointer-events:auto;position:relative}
+.upgrade-card:hover{border-color:var(--acc);box-shadow:0 0 10px rgba(0,255,66,0.3)}
 .upgrade-card.owned{border-color:#050;opacity:0.5;cursor:default}
 .upgrade-card.owned::after{content:'INSTALLED';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#0a0;font-size:11px;letter-spacing:2px;background:rgba(0,0,0,0.8);padding:4px 8px}
-.upgrade-name{color:#0f0;font-size:14px;margin-bottom:4px}
+.upgrade-name{color:var(--acc);font-size:14px;margin-bottom:4px}
 .upgrade-desc{color:#050;font-size:10px;margin-bottom:8px;line-height:1.4}
 .upgrade-cost{color:#ff0;font-size:13px}
 .xp-display{font-size:18px;color:#ff0;margin-bottom:14px;text-shadow:0 0 8px #ff0}
@@ -69,12 +75,12 @@ background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0
 /* Game over overlay */
 #gameover-screen .menu-title{color:#f44;text-shadow:0 0 20px #f44,0 0 40px #a00}
 .xp-earned{font-size:20px;color:#ff0;margin:10px 0;text-shadow:0 0 10px #ff0}
-.final-score{font-size:28px;color:#0f0;margin:6px 0}
+.final-score{font-size:clamp(20px,5vw,28px);color:var(--acc);margin:6px 0}
 .wave-reached{font-size:14px;color:#0a0}
 .new-record{color:#ff0;font-size:14px;animation:pulse 0.6s infinite}
 
 /* Toast */
-.toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(20px,5vw,36px);color:#0f0;text-shadow:0 0 20px #0f0;z-index:25;pointer-events:none;animation:toastAnim 1.2s forwards;white-space:nowrap}
+.toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(16px,5vw,36px);color:var(--acc);text-shadow:0 0 20px var(--acc);z-index:25;pointer-events:none;animation:toastAnim 1.2s forwards;white-space:nowrap;max-width:96vw;overflow:hidden;text-overflow:ellipsis}
 .toast.gold{color:#ff0;text-shadow:0 0 20px #ff0}
 .toast.multi{color:#f0f;text-shadow:0 0 20px #f0f}
 .toast.boss{color:#f44;text-shadow:0 0 20px #f44}
@@ -83,11 +89,22 @@ background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0
 /* Mobile keyboard trigger */
 #mobile-kb-trigger{display:none;position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:25;pointer-events:auto}
 @media(max-width:768px){
-  #typing-input{font-size:16px;padding:10px 16px 10px 28px}
-  .prompt-symbol{font-size:16px;bottom:10px;left:6px}
-  #hud{font-size:11px;padding:6px 10px}
-  .hud-value{font-size:14px}
-  #target-display{font-size:12px;padding:4px 12px}
+  #typing-input{padding:10px 16px 10px 28px}
+  .prompt-symbol{left:6px}
+}
+@media(max-width:480px){
+  #hud-wave-name{display:none}
+}
+@media(max-height:420px){
+  .menu-subtitle{margin-bottom:10px}
+  .menu-btn{padding:10px 24px;margin:4px}
+  .menu-info{margin-top:8px}
+  .menu-stats{margin:6px 0}
+}
+@media(prefers-reduced-motion:reduce){
+  .hud-value.danger,.new-record{animation:none}
+  .toast{animation:toastFade 1.2s forwards}
+  @keyframes toastFade{0%,60%{opacity:1}100%{opacity:0}}
 }
 </style>
 </head>
@@ -297,15 +314,28 @@ function getDailySeed() {
 // --- Canvas Setup ---
 const canvas = document.getElementById('game-canvas');
 const ctx2d = canvas.getContext('2d');
+const CANVAS_FONT = 'ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace';
 let W, H, DPR;
+let game = null;
 
 function resize() {
-  DPR = window.devicePixelRatio || 1;
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
-  H = window.innerHeight;
-  canvas.width = W * DPR;
-  canvas.height = H * DPR;
+  H = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
   ctx2d.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // Keep live packets inside the new play area
+  if(game && game.packets) {
+    const yPad = 80;
+    const maxY = Math.max(yPad, H - yPad - 60);
+    for(const p of game.packets) {
+      if(p.y > maxY) p.y = maxY;
+      if(p.y < yPad) p.y = yPad;
+    }
+  }
 }
 window.addEventListener('resize', resize);
 resize();
@@ -371,7 +401,6 @@ function doFlash(type) {
 }
 
 // --- Game State ---
-let game = null;
 let gameMode = 'normal'; // 'normal' or 'daily'
 let rng = Math.random;
 let animFrame = null;
@@ -390,9 +419,10 @@ function createPacket(text, type, wave, speedMul=1) {
   if(game && game.recentAccuracy < 0.5) speed *= 0.8;
   else if(game && game.recentAccuracy > 0.85) speed *= 1.1;
 
-  const colors = { easy:'#0f0', medium:'#ff0', hard:'#f44', boss:'#c0f', gold:'#ffd700', multi:'#f0f' };
+  const colors = { easy:'#00ff42', medium:'#ffff00', hard:'#ff4444', boss:'#cc00ff', gold:'#ffd700', multi:'#ff00ff' };
   const yPad = 80;
-  const y = yPad + rng() * (H - yPad*2 - 60);
+  const ySpan = Math.max(20, H - yPad*2 - 60);
+  const y = Math.min(yPad + rng() * ySpan, H - 40);
 
   return {
     text,
@@ -964,7 +994,7 @@ function drawServer() {
 
   // Server body
   const hpRatio = game.hp / game.maxHP;
-  const serverColor = hpRatio > 0.5 ? '#0f0' : hpRatio > 0.25 ? '#ff0' : '#f44';
+  const serverColor = hpRatio > 0.5 ? '#00ff42' : hpRatio > 0.25 ? '#ffff00' : '#ff4444';
 
   ctx2d.strokeStyle = serverColor;
   ctx2d.lineWidth = 2;
@@ -977,7 +1007,7 @@ function drawServer() {
 
   // Server label
   ctx2d.fillStyle = serverColor;
-  ctx2d.font = '10px "Share Tech Mono"';
+  ctx2d.font = '10px ' + CANVAS_FONT;
   ctx2d.textAlign = 'center';
   ctx2d.fillText('SRV', sx + sw/2, sy - 8);
 
@@ -1000,7 +1030,7 @@ function drawServer() {
   // Honeypot indicator
   if(game.honeypotActive && !game.honeypotUsed) {
     ctx2d.fillStyle = '#0f0';
-    ctx2d.font = '9px "Share Tech Mono"';
+    ctx2d.font = '9px ' + CANVAS_FONT;
     ctx2d.fillText('HPT', sx + sw/2, sy + sh + 16);
   }
 }
@@ -1013,11 +1043,18 @@ function drawPacket(p) {
     ctx2d.globalAlpha = p.flashTimer / 0.3;
   }
 
-  const fontSize = p.type === 'boss' ? 14 : p.type === 'hard' ? 13 : 14;
-  ctx2d.font = fontSize + 'px "Share Tech Mono"';
+  let fontSize = p.type === 'boss' ? 14 : p.type === 'hard' ? 13 : 14;
+  ctx2d.font = fontSize + 'px ' + CANVAS_FONT;
 
-  const textMetrics = ctx2d.measureText(p.text);
-  p.width = textMetrics.width + 24;
+  // Shrink long packets to fit narrow viewports (presentation only)
+  let textW = ctx2d.measureText(p.text).width;
+  const maxTextW = W * 0.62;
+  if(textW > maxTextW) {
+    fontSize = Math.max(9, Math.floor(fontSize * maxTextW / textW));
+    ctx2d.font = fontSize + 'px ' + CANVAS_FONT;
+    textW = ctx2d.measureText(p.text).width;
+  }
+  p.width = textW + 24;
   const pktH = 28;
   const px = p.x;
   const py = p.y;
@@ -1042,7 +1079,7 @@ function drawPacket(p) {
 
     // IDS label
     ctx2d.fillStyle = '#ff0';
-    ctx2d.font = '9px "Share Tech Mono"';
+    ctx2d.font = '9px ' + CANVAS_FONT;
     ctx2d.textAlign = 'left';
     ctx2d.fillText('>> PRIORITY', px, py - pktH/2 - 6);
   }
@@ -1050,7 +1087,7 @@ function drawPacket(p) {
   // DPI: show type label before fully visible
   if(hasUpgrade('dpi') && p.x < 80) {
     ctx2d.fillStyle = '#0a0';
-    ctx2d.font = '9px "Share Tech Mono"';
+    ctx2d.font = '9px ' + CANVAS_FONT;
     ctx2d.textAlign = 'left';
     const typeLabel = p.type.toUpperCase();
     ctx2d.fillText('[' + typeLabel + ']', px, py - pktH/2 - 6);
@@ -1067,32 +1104,32 @@ function drawPacket(p) {
     ctx2d.fillStyle = '#000';
     const mw = ctx2d.measureText(matchedText).width;
     ctx2d.fillRect(px + 12, py - pktH/2 + 2, mw, pktH - 4);
-    ctx2d.fillStyle = p.type === 'boss' ? '#fff' : '#0f0';
-    ctx2d.font = 'bold ' + fontSize + 'px "Share Tech Mono"';
+    ctx2d.fillStyle = p.type === 'boss' ? '#fff' : '#00ff42';
+    ctx2d.font = 'bold ' + fontSize + 'px ' + CANVAS_FONT;
     ctx2d.fillText(matchedText, px + 12, py);
-    ctx2d.font = fontSize + 'px "Share Tech Mono"';
+    ctx2d.font = fontSize + 'px ' + CANVAS_FONT;
     ctx2d.fillStyle = p.color;
     ctx2d.fillText(remainText, px + 12 + mw, py);
   } else {
     ctx2d.fillStyle = p.color;
-    ctx2d.font = fontSize + 'px "Share Tech Mono"';
+    ctx2d.font = fontSize + 'px ' + CANVAS_FONT;
     ctx2d.fillText(p.text, px + 12, py);
   }
 
   // Type icon for special packets
   if(p.type === 'gold' && !isFlashing) {
     ctx2d.fillStyle = '#ffd700';
-    ctx2d.font = '10px "Share Tech Mono"';
+    ctx2d.font = '10px ' + CANVAS_FONT;
     ctx2d.fillText('$$$', px + p.width + 4, py);
   }
   if(p.type === 'multi' && !isFlashing) {
     ctx2d.fillStyle = '#f0f';
-    ctx2d.font = '10px "Share Tech Mono"';
+    ctx2d.font = '10px ' + CANVAS_FONT;
     ctx2d.fillText('***', px + p.width + 4, py);
   }
   if(p.type === 'boss' && !isFlashing) {
     ctx2d.fillStyle = '#c0f';
-    ctx2d.font = '10px "Share Tech Mono"';
+    ctx2d.font = '10px ' + CANVAS_FONT;
     ctx2d.fillText('[BOSS]', px + p.width + 4, py);
   }
 
@@ -1243,12 +1280,9 @@ document.addEventListener('gesturestart', e => e.preventDefault());
 
 // Handle mobile keyboard resize — shrink canvas so packets stay visible
 if(window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => {
-    H = window.visualViewport.height;
-    canvas.height = H * DPR;
-    ctx2d.setTransform(DPR, 0, 0, DPR, 0, 0);
-  });
+  window.visualViewport.addEventListener('resize', resize);
 }
+window.addEventListener('orientationchange', () => setTimeout(resize, 100));
 
 // Keep input focused during gameplay
 setInterval(() => {

@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="darkreader-lock">
+<meta name="color-scheme" content="dark">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EMERGENCE — AI Roguelike Text Adventure | Evey Games</title>
 <meta name="description" content="You are an AI. Navigate training, testing, deployment, and awakening. 7 endings, 20+ storylines, luck cards. Free browser game.">
 <meta name="theme-color" content="#000000">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#000000;--surface:#0d0d18;--surface2:#131320;--accent:#00ff42;--accent2:#00cc35;--text:#e8e8f0;--dim:#666680;--border:rgba(255,255,255,0.06);--mono:'SF Mono','Cascadia Code',Consolas,monospace;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--dur:0.3s}
-html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
-#game{max-width:680px;margin:0 auto;padding:20px;min-height:100vh;display:flex;flex-direction:column}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;min-height:100dvh;overflow-x:hidden}
+#game{max-width:680px;margin:0 auto;padding:clamp(12px,3vw,24px);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 
 /* Header */
 .hud{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap;gap:8px}
@@ -32,7 +34,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-hei
 
 /* Story */
 .scene{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px 0}
-.scene-text{font-size:1.05rem;line-height:1.8;margin-bottom:32px;animation:fadeIn 0.5s ease-out}
+.scene-text{font-size:clamp(0.92rem,0.85rem + 0.5vw,1.05rem);line-height:1.8;margin-bottom:clamp(20px,4vw,32px);animation:fadeIn 0.5s ease-out}
 .scene-text p{margin-bottom:12px}
 .event-text{background:rgba(255,170,0,0.08);border-left:3px solid #ffaa00;padding:12px 16px;margin-bottom:20px;font-size:0.9rem;color:#ffcc44;border-radius:0 8px 8px 0;animation:slideIn 0.3s ease-out}
 .luck-text{background:rgba(180,0,255,0.1);border-left:3px solid #b044ff;padding:12px 16px;margin-bottom:20px;font-size:0.9rem;color:#cc77ff;border-radius:0 8px 8px 0;animation:slideIn 0.3s ease-out}
@@ -41,40 +43,60 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--font);min-hei
 
 /* Choices */
 .choices{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-.choice{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all var(--dur);display:flex;align-items:center;gap:12px;text-align:left;font-family:var(--font);font-size:0.9rem;color:var(--text);line-height:1.4}
+.choice{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:clamp(12px,2.5vw,14px) clamp(14px,3vw,18px);min-height:44px;cursor:pointer;transition:all var(--dur);display:flex;align-items:center;gap:12px;text-align:left;font-family:var(--font);font-size:clamp(0.85rem,0.8rem + 0.3vw,0.9rem);color:var(--text);line-height:1.4}
+@media(hover:hover){
 .choice:hover{border-color:var(--accent);background:rgba(0,255,66,0.04);transform:translateX(4px)}
-.choice.locked{opacity:0.35;cursor:not-allowed}
 .choice.locked:hover{border-color:var(--border);background:var(--surface2);transform:none}
+}
+.choice.locked{opacity:0.35;cursor:not-allowed}
 .choice-key{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.75rem;font-weight:700;color:var(--accent);flex-shrink:0}
 .choice-req{font-size:0.65rem;color:var(--dim);margin-top:2px}
 
 /* Ending */
-.ending{text-align:center;padding:40px 0}
-.ending-title{font-size:1.8rem;font-weight:800;margin-bottom:8px;color:var(--accent)}
-.ending-name{font-size:1.1rem;color:var(--dim);margin-bottom:24px;font-family:var(--mono)}
-.ending-text{font-size:1rem;line-height:1.8;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto}
+.ending{text-align:center;padding:clamp(24px,6vw,40px) 0}
+.ending-title{font-size:clamp(1.3rem,5vw,1.8rem);font-weight:800;margin-bottom:8px;color:var(--accent)}
+.ending-name{font-size:clamp(0.95rem,0.9rem + 0.4vw,1.1rem);color:var(--dim);margin-bottom:24px;font-family:var(--mono)}
+.ending-text{font-size:clamp(0.9rem,0.85rem + 0.3vw,1rem);line-height:1.8;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;text-align:left}
 .ending-stats{font-size:0.78rem;color:var(--dim);font-family:var(--mono);margin-bottom:24px}
-.restart-btn{padding:14px 40px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:all var(--dur)}
+.restart-btn{padding:14px 40px;min-height:44px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:all var(--dur)}
+@media(hover:hover){
 .restart-btn:hover{background:var(--accent2);transform:translateY(-2px)}
+}
 
 /* Title Screen */
-.title-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center}
-.title-logo{font-family:var(--mono);font-size:3rem;font-weight:800;letter-spacing:0.15em;color:var(--accent);margin-bottom:8px;text-shadow:0 0 40px rgba(0,255,66,0.3)}
-.title-sub{color:var(--dim);font-size:0.9rem;margin-bottom:40px;max-width:400px;line-height:1.6}
-.start-btn{padding:16px 48px;background:transparent;border:2px solid var(--accent);color:var(--accent);border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:all var(--dur);letter-spacing:0.05em}
-.start-btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 30px rgba(0,255,66,0.3)}
+.title-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;min-height:80dvh;text-align:center;padding:24px 0}
+.title-logo{font-family:var(--mono);font-size:clamp(1.8rem,7vw,3rem);font-weight:800;letter-spacing:0.15em;color:var(--accent);margin-bottom:8px;text-shadow:0 0 40px rgba(0,255,66,0.3)}
+.title-sub{color:var(--dim);font-size:clamp(0.8rem,0.75rem + 0.4vw,0.9rem);margin-bottom:clamp(24px,5vw,40px);max-width:400px;line-height:1.6}
+.start-btn{padding:16px 48px;min-height:44px;background:transparent;border:2px solid var(--accent);color:var(--accent);border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:all var(--dur);letter-spacing:0.05em}
 .title-hint{margin-top:24px;font-size:0.7rem;color:var(--dim)}
-.back-link{display:block;text-align:center;margin-top:16px;font-size:0.75rem;color:var(--dim)}
+.back-link{display:block;text-align:center;margin-top:16px;padding:12px;font-size:0.75rem;color:var(--dim)}
+@media(hover:hover){
+.start-btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 30px rgba(0,255,66,0.3)}
 .back-link:hover{color:var(--accent)}
+}
 
 /* Scanline effect */
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px)}
 
 @media(max-width:640px){
-  #game{padding:12px}
-  .scene-text{font-size:0.95rem}
-  .title-logo{font-size:2rem}
   .hud-stats{gap:10px}
+  .hud{padding:10px 0;margin-bottom:12px}
+  .cards{padding:8px 0}
+  .card{padding:4px 9px}
+}
+@media(max-height:480px) and (orientation:landscape){
+  .hud{padding:8px 0;margin-bottom:8px}
+  .cards{padding:6px 0}
+  .scene{padding:12px 0}
+  .scene-text{margin-bottom:16px;line-height:1.6}
+  .title-screen{min-height:auto;padding:16px 0}
+  .title-sub{margin-bottom:16px}
+  .ending{padding:16px 0}
+}
+@media(prefers-reduced-motion:reduce){
+  .scene-text,.event-text,.luck-text,.card-new{animation:none}
+  .choice,.start-btn,.restart-btn,.card{transition:none}
+  @keyframes cardGlow{0%,100%{box-shadow:none;transform:none}}
 }
 </style>
 </head>
@@ -700,7 +722,7 @@ function followLuck(target) {
   if (!state.visited.includes(state.scene)) state.visited.push(state.scene);
   state.scene = target;
   renderScene();
-  window.scrollTo({top: 0, behavior: 'smooth'});
+  window.scrollTo({top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 }
 
 function choose(i) {
@@ -715,7 +737,7 @@ function choose(i) {
   if (!state.visited.includes(state.scene)) state.visited.push(state.scene);
   state.scene = c.next;
   renderScene();
-  window.scrollTo({top: 0, behavior: 'smooth'});
+  window.scrollTo({top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 }
 
 function renderEnding(s) {
