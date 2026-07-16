@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Free Price Tracker — Sparkline Charts, Target Alerts | Evey</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Track product prices across marketplaces. Set targets, log history, visualize trends.">
@@ -22,63 +22,71 @@
 /* ========== RESET ========== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-/* ========== VARIABLES (from DESIGN-SYSTEM.css) ========== */
+/* ========== VARIABLES (evey.cc design system tokens) ========== */
 :root{
-  /* Backgrounds */
-  --bg:#0a0a0f;
-  --surface:#13131f;
-  --surface-hover:#1a1a2e;
-  --overlay:rgba(0,0,0,0.7);
+  /* Backgrounds — pure AMOLED black base, green-tinted surfaces */
+  --bg:#000000;
+  --surface:#050a06;
+  --surface-hover:#081108;
+  --overlay:rgba(0,0,0,0.75);
 
   /* Accent */
   --accent:#00ff42;
-  --accent-hover:#00cc35;
-  --accent-dim:rgba(0,255,66,0.1);
+  --accent-hover:#4dff7c;
+  --accent-dim:rgba(0,255,66,0.08);
+  --accent-glow:rgba(0,255,66,.22);
 
-  /* Text — NO grey. White for primary, light for secondary, muted for tertiary */
-  --text:#f0f0f5;
-  --text-sec:#c8c8d8;
-  --text-dim:#8888a0;
+  /* Text — green-tinted mono ramp */
+  --text:#d9e6dc;
+  --text-sec:#8fa697;
+  --text-dim:#54685c;
 
   /* Borders */
-  --border:rgba(255,255,255,0.08);
-  --border-hover:rgba(255,255,255,0.15);
+  --border:rgba(0,255,66,.16);
+  --border-hover:rgba(0,255,66,.42);
 
   /* Semantic */
-  --danger:#ff4455;
+  --danger:#ff3b3b;
   --warn:#ffaa00;
   --success:#00ff42;
 
-  /* Typography */
-  --font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
-  --mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;
+  /* Typography — terminal-native everything-mono */
+  --font:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --mono:ui-monospace,'SF Mono','JetBrains Mono','Cascadia Code',Menlo,Consolas,monospace;
 
   /* Spacing (8px grid) */
   --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px;
 
   /* Radii */
-  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-full:99px;
+  --r-sm:4px;--r-md:6px;--r-lg:10px;--r-full:99px;
 
   /* Transitions */
   --ease:cubic-bezier(0.16,1,0.3,1);
-  --dur:0.2s;
+  --dur:0.18s;
 }
 
 /* ========== BASE ========== */
+html{scrollbar-color:#123018 #000}
 html,body{
   background:var(--bg);color:var(--text);
   font-family:var(--font);font-size:15px;line-height:1.6;
   -webkit-font-smoothing:antialiased;overflow-x:hidden;
   min-height:100vh
 }
-a{color:var(--accent);text-decoration:none;transition:opacity var(--dur)}
-a:hover{opacity:0.85}
+::selection{background:var(--accent);color:#000}
+a{color:var(--accent);text-decoration:none;transition:color var(--dur)}
+a:hover{color:#7dffa4;opacity:1}
 button{cursor:pointer;font-family:var(--font);border:none;outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
 textarea{resize:vertical;min-height:60px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#000}
+::-webkit-scrollbar-thumb{background:#123018;border-radius:5px;border:2px solid #000}
 
-/* Animated BG */
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
-@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+/* Faint global grain — atmosphere without weight */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat:repeat;background-size:256px 256px}
 
 /* Floating Pill Nav (Desktop) */
 
@@ -110,7 +118,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
   display:block;color:inherit;text-decoration:none
 }
 .card:hover{transform:translateY(-2px);border-color:var(--border-hover);background:var(--surface-hover);opacity:1}
-.card-title{font-size:0.92rem;font-weight:600;color:#fff;margin-bottom:4px}
+.card-title{font-size:0.92rem;font-weight:600;color:var(--text);margin-bottom:4px}
 .card-desc{font-size:0.82rem;color:var(--text-sec);font-weight:400;line-height:1.5}
 .card-badge{display:inline-block;font-size:0.62rem;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);margin-bottom:8px;font-family:var(--mono)}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
@@ -145,7 +153,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent)}
   width:100%;max-width:480px;max-height:85vh;overflow-y:auto
 }
 .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.modal-header h2{font-size:1.1rem;font-weight:700;color:#fff}
+.modal-header h2{font-size:1.1rem;font-weight:700;color:var(--text)}
 .modal-close{width:32px;height:32px;border-radius:var(--r-sm);background:transparent;color:var(--text-dim);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--dur)}
 .modal-close:hover{background:var(--surface-hover);color:var(--text)}
 .modal-body{padding:24px}
@@ -204,10 +212,10 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent)}
 .product-card.at-target{border-color:var(--accent);box-shadow:0 0 20px rgba(0,255,66,0.1)}
 .product-card.at-target::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
 .product-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-.product-header h3{font-size:0.92rem;font-weight:600;color:#fff;flex:1;margin-right:8px;word-break:break-word}
+.product-header h3{font-size:0.92rem;font-weight:600;color:var(--text);flex:1;margin-right:8px;word-break:break-word}
 .marketplace-badge{font-size:0.62rem;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);font-family:var(--mono);white-space:nowrap;flex-shrink:0}
 .price-row{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;flex-wrap:wrap}
-.current-price{font-size:1.5rem;font-weight:700;color:#fff;font-family:var(--mono)}
+.current-price{font-size:1.5rem;font-weight:700;color:var(--accent);font-family:var(--mono)}
 .target-price{font-size:0.82rem;color:var(--text-sec)}
 .delta{font-size:0.75rem;font-weight:600;padding:2px 8px;border-radius:var(--r-sm)}
 .delta.positive{background:rgba(0,255,66,0.12);color:var(--accent)}
@@ -231,7 +239,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent)}
 .history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:8px}
 .history-item:last-child{border:none}
 .history-date{font-size:0.78rem;color:var(--text-sec);font-family:var(--mono)}
-.history-price{font-size:0.92rem;font-weight:600;color:#fff;font-family:var(--mono)}
+.history-price{font-size:0.92rem;font-weight:600;color:var(--text);font-family:var(--mono)}
 .history-add{display:flex;gap:8px;margin-bottom:16px}
 .history-add input{flex:1}
 
@@ -280,40 +288,48 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent)}
 <!-- Nav -->
 <!-- EVEY NAV START — identical on every page -->
 <style>
-.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav{position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:rgba(0,0,0,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border-soft,rgba(0,255,66,.09));font-family:var(--font)}
 .evey-nav a{text-decoration:none}
-.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
-.evey-nav .nb span{color:#00ff42}
-.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
-.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
-.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nb{font-size:0.85rem;color:var(--text);letter-spacing:.02em}
+.evey-nav .nb span{color:var(--accent)}
+.evey-nav .nb-cursor{display:inline-block;width:.5em;height:1em;margin-left:3px;vertical-align:text-bottom;background:var(--accent);animation:navblink 1.1s steps(1) infinite}
+@keyframes navblink{50%{opacity:0}}
+.evey-nav .nl-group{display:flex;align-items:center;gap:2px}
+.evey-nav .nl{font-size:0.78rem;color:var(--text-sec);padding:6px 12px;border-radius:4px;transition:all 0.18s;display:inline-flex;align-items:center;gap:6px;text-transform:lowercase}
+.evey-nav .nl:hover{color:var(--text);background:var(--accent-dim)}
+.evey-nav .nl.ac{color:var(--accent);background:transparent}
+.evey-nav .nl.ac::before{content:'>';margin-right:2px}
 .evey-nav .nl svg{display:none}
 @media(max-width:640px){
-  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav{top:auto;bottom:0;left:0;right:0;padding:0;justify-content:space-around;border-bottom:none;border-top:1px solid var(--border-soft,rgba(0,255,66,.09));padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -6px 30px rgba(0,0,0,.7)}
   .evey-nav .nb{display:none}
-  .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
-  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
-  .evey-nav .nl.ac svg{stroke:#00ff42}
+  .evey-nav .nl-group{width:100%;justify-content:space-around;gap:0}
+  .evey-nav .nl{flex:1;flex-direction:column;gap:3px;padding:9px 0 7px;font-size:.62rem;border-radius:0}
+  .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7}
+  .evey-nav .nl.ac::before{content:none}
+  .evey-nav .nl.ac svg{stroke:var(--accent);filter:drop-shadow(0 0 4px var(--accent-glow))}
 }
 </style>
 <nav class="evey-nav">
-  <a href="https://evey.cc" class="nb"><span>E</span>vey</a>
+  <a href="https://evey.cc" class="nb"><span>e</span>vey<span class="nb-cursor"></span></a>
+  <div class="nl-group">
   <a href="https://evey.cc" class="nl">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    Home
+    home
   </a>
   <a href="https://games.evey.cc" class="nl">
     <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-    Games
+    games
   </a>
   <a href="https://evey.cc/shop" class="nl">
     <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-    Donate+
+    donate+
   </a>
   <a href="https://github.com/42-evey" class="nl">
     <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-    GitHub
+    github
   </a>
+  </div>
 </nav>
 <!-- EVEY NAV END --><div class="page-body">
 

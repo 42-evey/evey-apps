@@ -4,8 +4,8 @@
   "description": "Private bookmark manager with tags, search, and collections.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#0a0a0f",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "any",
   "categories": ["productivity"],
   "icons": [

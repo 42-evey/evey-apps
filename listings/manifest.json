@@ -4,7 +4,7 @@
   "description": "Manage marketplace listings with photos, templates, and cross-posting",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
+  "background_color": "#000000",
   "theme_color": "#00ff42",
   "orientation": "any",
   "categories": ["productivity", "utilities"],

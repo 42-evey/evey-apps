@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Free Online Bookmark Manager — Tags, Search, Export | Evey</title>
 <meta name="description" content="Private bookmark manager with tags, search, and collections. All data stays in your browser.">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <meta property="og:title" content="Free Online Bookmark Manager — Tags, Search, Export | Evey">
@@ -19,73 +19,90 @@
 <link rel="canonical" href="https://bookmarks.evey.cc/">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--surface:#13131f;--surface-hover:#1a1a2e;--accent:#00ff42;--accent-hover:#00cc35;--accent-dim:rgba(0,255,66,0.1);--text:#f0f0f5;--text-sec:#c8c8d8;--text-dim:#8888a0;--border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);--danger:#ff4455;--font:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono','Cascadia Code','JetBrains Mono',Consolas,monospace;--ease:cubic-bezier(0.16,1,0.3,1);--dur:0.2s}
-html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
-a{color:var(--accent);text-decoration:none}
+:root{
+  --bg:#000000;--surface:#050a06;--surface-hover:#081108;
+  --accent:#00ff42;--accent-hover:#4dff7c;--accent-dim:rgba(0,255,66,.08);--accent-glow:rgba(0,255,66,.22);
+  --text:#d9e6dc;--text-sec:#8fa697;--text-dim:#54685c;
+  --border:rgba(0,255,66,.16);--border-hover:rgba(0,255,66,.42);
+  --danger:#ff3b3b;
+  --font:ui-monospace,'SF Mono','Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;
+  --mono:ui-monospace,'SF Mono','Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;
+  --ease:cubic-bezier(0.16,1,0.3,1);--dur:0.18s;
+}
+html{scrollbar-color:#123018 #000}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none;transition:color var(--dur)}
+a:hover{color:var(--accent-hover)}
+::selection{background:var(--accent);color:#000}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#000}
+::-webkit-scrollbar-thumb{background:#123018;border-radius:5px;border:2px solid #000}
 
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 25% 10%,rgba(0,255,66,0.06) 0%,transparent 70%),radial-gradient(ellipse 60% 70% at 80% 80%,rgba(100,120,255,0.05) 0%,transparent 70%);animation:meshShift 25s ease-in-out infinite alternate}
-@keyframes meshShift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-2%,1%) scale(1.03)}100%{transform:translate(1%,-1%) scale(0.98)}}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat:repeat;background-size:256px 256px}
 
 .app{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:80px 24px 48px}
 
 .toolbar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
-.search{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:0.88rem;outline:none;transition:border-color var(--dur)}
+.search{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:0.88rem;outline:none;transition:border-color var(--dur)}
 .search:focus{border-color:var(--accent)}
 .search::placeholder{color:var(--text-dim)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:0.85rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all var(--dur) var(--ease);border:none}
-.btn-primary{background:var(--accent);color:var(--bg)}
-.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:4px;font-size:0.82rem;letter-spacing:.03em;text-transform:lowercase;font-family:var(--font);cursor:pointer;transition:all var(--dur) var(--ease);border:none}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:var(--accent-hover);box-shadow:0 0 20px var(--accent-glow);transform:translateY(-1px)}
 .btn-ghost{background:transparent;color:var(--text-sec);border:1px solid var(--border);padding:8px 14px;font-size:0.78rem}
-.btn-ghost:hover{color:var(--text);border-color:var(--border-hover)}
+.btn-ghost:hover{color:var(--accent);border-color:var(--border-hover)}
 .btn-sm{padding:6px 12px;font-size:0.75rem}
-.btn-danger{background:var(--danger);color:#fff}
+.btn-danger{background:var(--danger);color:#000}
 
 .tags-bar{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;overflow-x:auto}
-.tag-pill{padding:5px 12px;border-radius:99px;font-size:0.72rem;font-weight:600;cursor:pointer;transition:all var(--dur);border:1px solid var(--border);background:transparent;color:var(--text-sec);font-family:var(--font);white-space:nowrap}
+.tag-pill{padding:5px 12px;border-radius:99px;font-size:0.72rem;cursor:pointer;transition:all var(--dur);border:1px solid var(--border);background:transparent;color:var(--text-sec);font-family:var(--font);white-space:nowrap}
 .tag-pill:hover{border-color:var(--accent);color:var(--accent)}
 .tag-pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;border-radius:10px;overflow:hidden;margin-bottom:20px;border:1px solid var(--border)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border-radius:6px;overflow:hidden;margin-bottom:20px;background:var(--border);border:1px solid var(--border)}
 .stat{background:var(--surface);padding:14px 8px;text-align:center}
-.stat-value{font-size:1.2rem;font-weight:800;color:var(--accent);font-family:var(--mono)}
-.stat-label{font-size:0.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+.stat-value{font-size:1.2rem;color:var(--accent);font-family:var(--mono)}
+.stat-label{font-size:0.58rem;color:var(--text-dim);text-transform:lowercase;letter-spacing:0.08em;margin-top:2px}
 
 .bookmark-list{display:flex;flex-direction:column;gap:8px}
-.bookmark{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all var(--dur) var(--ease);position:relative}
+.bookmark{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;transition:all var(--dur) var(--ease);position:relative}
 .bookmark:hover{border-color:var(--border-hover);background:var(--surface-hover)}
 .bookmark-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.bookmark-title{font-size:0.92rem;font-weight:600;color:#fff;cursor:pointer;word-break:break-word}
+.bookmark-title{font-size:0.92rem;color:var(--text);cursor:pointer;word-break:break-word}
 .bookmark-title:hover{color:var(--accent)}
 .bookmark-url{font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);word-break:break-all;margin-top:2px}
 .bookmark-desc{font-size:0.82rem;color:var(--text-sec);margin-top:6px;line-height:1.5}
 .bookmark-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
-.bookmark-tag{font-size:0.62rem;padding:2px 8px;border-radius:4px;background:var(--accent-dim);color:var(--accent);font-family:var(--mono);font-weight:600}
+.bookmark-tag{font-size:0.62rem;padding:2px 8px;border-radius:3px;background:var(--accent-dim);color:var(--accent);font-family:var(--mono);text-transform:lowercase;letter-spacing:.04em}
 .bookmark-date{font-size:0.62rem;color:var(--text-dim);margin-left:auto}
 .bookmark-actions{display:flex;gap:4px;flex-shrink:0}
 
 .empty{text-align:center;padding:60px 20px;color:var(--text-sec)}
-.empty h3{color:#fff;font-size:1.1rem;margin-bottom:6px}
+.empty h3{color:var(--text);font-size:1.1rem;margin-bottom:6px;font-weight:400}
 
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:500;padding:20px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:500;padding:20px}
 .modal-overlay.active{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto}
-.modal h2{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:16px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto}
+.modal h2{font-size:1.05rem;font-weight:400;color:var(--text);margin-bottom:16px;letter-spacing:.02em}
+.modal h2::before{content:'> ';color:var(--accent)}
 .form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
-.form-group input,.form-group textarea{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--font);font-size:0.88rem;outline:none;transition:border-color var(--dur)}
+.form-group label{display:block;font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;text-transform:lowercase;letter-spacing:0.04em}
+.form-group input,.form-group textarea{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:10px 14px;font-family:var(--font);font-size:0.88rem;outline:none;transition:border-color var(--dur)}
 .form-group input:focus,.form-group textarea:focus{border-color:var(--accent)}
 .form-group textarea{resize:vertical;min-height:60px}
 .form-actions{display:flex;gap:8px;margin-top:18px}
 .form-actions .btn{flex:1}
 
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);color:var(--text);padding:10px 20px;border-radius:6px;font-size:0.82rem;z-index:900;transition:transform 0.3s var(--ease);border:1px solid var(--border)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
 .footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);max-width:700px;margin:0 auto;position:relative;z-index:1}
 .footer-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
 .footer-links a{font-size:0.72rem;color:var(--text-sec)}
 .footer-links a:hover{color:var(--accent)}
-.footer-copy{font-size:0.58rem;color:var(--text-dim)}
+.footer-copy{font-size:0.58rem;color:var(--text-dim);font-family:var(--mono)}
 
 @media(max-width:640px){
 
@@ -94,26 +111,30 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
   body{padding-bottom:64px}
   .footer{display:none}
 }
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style>
 </head>
 <body>
 
 <!-- EVEY NAV START — identical on every page -->
 <style>
-.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(16,16,26,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);font-family:-apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+.evey-nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:4px;padding:6px 8px;background:rgba(0,0,0,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,255,66,0.16);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.6);font-family:ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace}
 .evey-nav a{text-decoration:none}
-.evey-nav .nb{font-weight:700;font-size:0.85rem;color:#fff;padding:6px 14px;letter-spacing:-0.02em}
+.evey-nav .nb{font-size:0.85rem;color:#d9e6dc;padding:6px 14px;letter-spacing:.02em}
 .evey-nav .nb span{color:#00ff42}
-.evey-nav .nl{font-size:0.78rem;color:#c8c8d8;padding:6px 14px;border-radius:999px;transition:all 0.2s;font-weight:500}
-.evey-nav .nl:hover{color:#fff;background:rgba(255,255,255,0.06)}
-.evey-nav .nl.ac{color:#fff;background:rgba(255,255,255,0.1)}
+.evey-nav .nl{font-size:0.78rem;color:#8fa697;padding:6px 14px;border-radius:999px;transition:all 0.18s;text-transform:lowercase}
+.evey-nav .nl:hover{color:#d9e6dc;background:rgba(0,255,66,0.08)}
+.evey-nav .nl.ac{color:#00ff42;background:rgba(0,255,66,0.08)}
 .evey-nav .nl svg{display:none}
 @media(max-width:640px){
-  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(255,255,255,0.08);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -4px 24px rgba(0,0,0,0.5);gap:0}
+  .evey-nav{top:auto;bottom:0;left:0;right:0;transform:none;border-radius:0;border:none;border-top:1px solid rgba(0,255,66,0.16);padding:0;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -6px 30px rgba(0,0,0,0.7);gap:0}
   .evey-nav .nb{display:none}
   .evey-nav .nl{flex:1;text-align:center;padding:10px 0 8px;border-radius:0;font-size:0.65rem;display:flex;flex-direction:column;align-items:center;gap:2px}
   .evey-nav .nl svg{display:block;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
-  .evey-nav .nl.ac svg{stroke:#00ff42}
+  .evey-nav .nl.ac svg{stroke:#00ff42;filter:drop-shadow(0 0 4px rgba(0,255,66,.4))}
 }
 </style>
 <nav class="evey-nav">
